@@ -55,7 +55,7 @@ var _engine = {
   },
   evalValue: function (str, scope) {
     var tpl = this.parser.parseValue(str.trim())
-    return this.renderer.evalValue(tpl, scope)
+    return this.renderer.evalValueSync(tpl, scope)
   },
   registerFilter: function (name, filter) {
     return this.filter.register(name, filter)

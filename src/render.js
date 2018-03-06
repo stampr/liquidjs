@@ -57,6 +57,12 @@ var render = {
     }
   },
 
+  evalValueSync: function (template, scope) {
+    assert(scope, 'unable to evalValue: scope undefined')
+    var initialValue = Syntax.evalExp(template.initial, scope)
+    return this.applyFilters(template, scope, initialValue)
+  },
+
   applyFilters: function (template, scope, initialValue) {
     return template.filters.reduce(
       (prev, filter) => filter.render(prev, scope),
