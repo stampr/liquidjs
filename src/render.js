@@ -48,12 +48,17 @@ var render = {
 
   evalValue: function (template, scope) {
     assert(scope, 'unable to evalValue: scope undefined')
-    var initialValue = Syntax.evalExp(template.initial, scope)
-    if (initialValue instanceof Promise) {
-      return initialValue.then(value => this.applyFilters(template, scope, value));
+    try {
+      var initialValue = Syntax.evalExp(template.initial, scope)
+      if (initialValue instanceof Promise) {
+        return initialValue.then(value => this.applyFilters(template, scope, value));
+      }
+      else {
+        return Promise.resolve(this.applyFilters(template, scope, initialValue));
+      }
     }
-    else {
-      return Promise.resolve(this.applyFilters(template, scope, initialValue));
+    catch (err) {
+      return Promise.reject(err);
     }
   },
 
