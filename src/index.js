@@ -74,9 +74,21 @@ var _engine = {
       })
   },
   getTemplate: function (filepath, root) {
-    return typeof XMLHttpRequest === 'undefined'
-      ? this.getTemplateFromFile(filepath, root)
-      : this.getTemplateFromUrl(filepath, root)
+    if (this.options.templateProvider) {
+      this.options.templateProvider(filepath).then(str => {
+        return this.parse(str).then(tpl => {
+          if (this.options.cache) {
+            this.cache[filepath] = tpl; 
+          }
+          return tpl;
+        });
+      });
+    }
+    else {
+      return typeof XMLHttpRequest === 'undefined'
+        ? this.getTemplateFromFile(filepath, root)
+        : this.getTemplateFromUrl(filepath, root);
+    }
   },
   getTemplateFromFile: function (filepath, root) {
     if (!path.extname(filepath)) {

@@ -10,9 +10,10 @@ module.exports = function (liquid) {
       this.variable = match[0]
     },
     render: function (scope, hash) {
-      var v = scope.get(this.variable)
-      if (typeof v !== 'number') v = 0
-      scope.set(this.variable, v + 1)
+      return scope.get(this.variable).then(v => {
+        if (typeof v !== 'number') v = 0
+        scope.set(this.variable, v + 1)
+      });
     }
   })
 }

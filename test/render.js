@@ -22,8 +22,6 @@ describe('render', function () {
       foo: {
         bar: ['a', 2]
       },
-      promise_value_resolved: new Promise(resolve => process.nextTick(() => resolve('resolved'))),
-      promise_value_rejected: new Promise((resolve, reject) => process.nextTick(() => reject(new Error('promise_value_rejected')))),
     })
     filter.clear()
     tag.clear()
@@ -32,9 +30,9 @@ describe('render', function () {
 
   describe('.renderTemplates()', function () {
     it('should throw when scope undefined', function () {
-      expect(function () {
-        render.renderTemplates([])
-      }).to.throw(/scope undefined/)
+      return expect(() => {
+        render.renderTemplates([]);
+      }).to.throw(/scope undefined/);
     })
 
     it('should render html', function () {
@@ -66,15 +64,23 @@ describe('render', function () {
       var tpl = Template.parseValue('foo.bar[0] | date: "b" | time:2')
       expect(render.evalValue(tpl, scope)).to.eventually.equal('ab6')
     })
-    it('should eval promise', function () {
-      filter.register('date', (l, r) => l + r)
-      filter.register('time', (l, r) => l + 3 * r)
-      var tpl = Template.parseValue('promise_value_resolved | date: "b" | time:2')
-      return expect(render.evalValue(tpl, scope)).to.eventually.equal('resolvedb6')
-    })
-    it('should handle rejected promises', function () {
-      var tpl = Template.parseValue('promise_value_rejected')
-      expect(render.evalValue(tpl, scope)).to.be.rejectedWith(Error, 'promise_value_rejected')
-    })
+    describe('promises', function() {
+      it('should eval promise', function () {
+        let resolvedScope = Scope.factory({
+          promise_value_resolved: new Promise(resolve => process.nextTick(() => resolve('resolved'))),
+        });
+        filter.register('date', (l, r) => l + r)
+        filter.register('time', (l, r) => l + 3 * r)
+        var tpl = Template.parseValue('promise_value_resolved | date: "b" | time:2')
+        return expect(render.evalValue(tpl, resolvedScope)).to.eventually.equal('resolvedb6')
+      })
+      it('should handle rejected promises', function () {
+        let rejectedScope = Scope.factory({
+          promise_value_rejected: new Promise((resolve, reject) => process.nextTick(() => reject(new Error('promise_value_rejected')))),
+        });
+        var tpl = Template.parseValue('promise_value_rejected')
+        expect(render.evalValue(tpl, rejectedScope)).to.be.rejectedWith(Error, 'promise_value_rejected')
+      })
+    });
   })
 })

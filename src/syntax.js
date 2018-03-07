@@ -47,11 +47,12 @@ function evalValue (str, scope) {
   if (!str) return Promise.resolve(undefined)
 
   if (lexical.isLiteral(str)) {
+    // console.log('evalValue isLiteral', str);
     return Promise.resolve(lexical.parseLiteral(str))
   }
   if (lexical.isVariable(str)) {
-    var scopedValue = scope.get(str);
-    return scopedValue instanceof Promise ? scopedValue : Promise.resolve(scopedValue)
+    // console.log('evalValue isVariable', str, scope);
+    return scope.get(str);
   }
   throw new TypeError(`cannot eval '${str}' as value`)
 }

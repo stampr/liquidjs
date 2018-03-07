@@ -147,7 +147,7 @@ describe('error', function () {
         .be.rejected
         .then(function (e) {
           expect(e).to.have.property('name', 'RenderError')
-          expect(e.message).to.contain('undefined variable: a')
+          expect(e.message).to.contain('undefined variable: "a"')
         })
     })
     it('should contain template context in err.stack', function () {
