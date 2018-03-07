@@ -11,9 +11,10 @@ module.exports = function (options) {
 
   var _filterInstance = {
     render: function (output, scope) {
-      var args = this.args.map(arg => Syntax.evalValue(arg, scope))
-      args.unshift(output)
-      return this.filter.apply(null, args)
+      return Promise.all(this.args.map(arg => Syntax.evalValue(arg, scope))).then(args => {
+        args.unshift(output)
+        return this.filter.apply(null, args)
+      })
     },
     parse: function (str) {
       var match = lexical.filterLine.exec(str)

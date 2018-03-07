@@ -18,7 +18,8 @@ describe('tags/for', function () {
       nullProtoObj: Object.create(null),
       obj: {foo: 'bar', coo: 'haa'},
       alpha: ['a', 'b', 'c'],
-      emptyArray: []
+      emptyArray: [],
+      collections: new Promise(resolve => process.nextTick(() => resolve([ { id: 'a' }, { id: 'b' }, { id: 'c' } ]))),
     }
   })
   it('should support array', function () {
@@ -159,6 +160,12 @@ describe('tags/for', function () {
       var src = '{% for i in (1..5) offset:2 reversed limit:4 %}{{ i }}{% endfor %}'
       return expect(liquid.parseAndRender(src, ctx))
         .to.eventually.equal('543')
+    })
+
+    it('should support collections returned from a promise', function () {
+      var src = '{% for collection in collections %}{{ collection.id }}.{% endfor %}'
+      return expect(liquid.parseAndRender(src, ctx))
+        .to.eventually.equal('a.b.c.')
     })
   })
 })

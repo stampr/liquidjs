@@ -23,30 +23,32 @@ module.exports = function (liquid) {
       }
     },
     render: function (scope, hash) {
-      var filepath = scope.opts.dynamicPartials
+      return (scope.opts.dynamicPartials
         ? Liquid.evalValue(this.value, scope)
-        : this.staticValue
-      assert(filepath, `cannot include with empty filename`)
+        : Promise.resolve(this.staticValue)).then(filepath => {
+        assert(filepath, `cannot include with empty filename`)
+        var originBlocks = scope.opts.blocks
+        var originBlockMode = scope.opts.blockMode
+        scope.opts.blocks = {}
+        scope.opts.blockMode = 'output'
 
-      var originBlocks = scope.opts.blocks
-      var originBlockMode = scope.opts.blockMode
-      scope.opts.blocks = {}
-      scope.opts.blockMode = 'output'
-
-      if (this.with) {
-        hash[filepath] = Liquid.evalValue(this.with, scope)
-      }
-      return liquid.getTemplate(filepath, scope.opts.root)
-        .then((templates) => {
-          scope.push(hash)
-          return liquid.renderer.renderTemplates(templates, scope)
+        return (!this.with ? Promise.resolve() : Liquid.evalValue(this.with, scope).then(result => {
+          hash[filepath] = result
+          return result
+        })).then(() => {
+          return liquid.getTemplate(filepath, scope.opts.root)
+            .then((templates) => {
+              scope.push(hash)
+              return liquid.renderer.renderTemplates(templates, scope)
+            })
+            .then((html) => {
+              scope.pop()
+              scope.opts.blocks = originBlocks
+              scope.opts.blockMode = originBlockMode
+              return html
+            })
         })
-        .then((html) => {
-          scope.pop()
-          scope.opts.blocks = originBlocks
-          scope.opts.blockMode = originBlockMode
-          return html
-        })
+      })
     }
   })
 }

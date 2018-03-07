@@ -1,4 +1,5 @@
 const Liquid = require('..')
+const firstSeries = require('../src/util/promise.js').firstSeries
 
 module.exports = function (liquid) {
   liquid.registerTag('if', {
@@ -30,14 +31,18 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      for (var i = 0; i < this.branches.length; i++) {
-        var branch = this.branches[i]
-        var cond = Liquid.evalExp(branch.cond, scope)
-        if (Liquid.isTruthy(cond)) {
-          return liquid.renderer.renderTemplates(branch.templates, scope)
-        }
-      }
-      return liquid.renderer.renderTemplates(this.elseTemplates, scope)
+      return firstSeries(this.branches, branch => {
+        return new Promise((resolve, reject) => {
+          return Liquid.evalExp(branch.cond, scope).then(cond => {
+            if (Liquid.isTruthy(cond)) {
+              resolve(liquid.renderer.renderTemplates(branch.templates, scope))
+            }
+            else {
+              reject()
+            }
+          })
+        })
+      }, () => liquid.renderer.renderTemplates(this.elseTemplates, scope))
     }
   })
 }

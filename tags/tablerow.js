@@ -30,55 +30,56 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      var collection = Liquid.evalExp(this.collection, scope) || []
+      return Liquid.evalExp(this.collection, scope).then(collection => {
+        collection = collection || []
+        var html = '<table>'
+        var offset = hash.offset || 0
+        var limit = (hash.limit === undefined) ? collection.length : hash.limit
 
-      var html = '<table>'
-      var offset = hash.offset || 0
-      var limit = (hash.limit === undefined) ? collection.length : hash.limit
+        var cols = hash.cols
+        var row
+        var col
+        if (!cols) throw new Error(`illegal cols: ${cols}`)
 
-      var cols = hash.cols
-      var row
-      var col
-      if (!cols) throw new Error(`illegal cols: ${cols}`)
+        // build array of arguments to pass to sequential promises...
+        collection = collection.slice(offset, offset + limit)
+        var contexts = []
+        collection.some((item, i) => {
+          var ctx = {}
+          ctx[this.variable] = item
+          contexts.push(ctx)
+        })
 
-      // build array of arguments to pass to sequential promises...
-      collection = collection.slice(offset, offset + limit)
-      var contexts = []
-      collection.some((item, i) => {
-        var ctx = {}
-        ctx[this.variable] = item
-        contexts.push(ctx)
-      })
+        return mapSeries(contexts,
+          (context, idx) => {
+            row = Math.floor(idx / cols) + 1
+            col = (idx % cols) + 1
+            if (col === 1) {
+              if (row !== 1) {
+                html += '</tr>'
+              }
+              html += `<tr class="row${row}">`
+            }
 
-      return mapSeries(contexts,
-        (context, idx) => {
-          row = Math.floor(idx / cols) + 1
-          col = (idx % cols) + 1
-          if (col === 1) {
-            if (row !== 1) {
+            html += `<td class="col${col}">`
+            scope.push(context)
+            return liquid.renderer
+              .renderTemplates(this.templates, scope)
+              .then((partial) => {
+                scope.pop(context)
+                html += partial
+                html += '</td>'
+                return html
+              })
+          })
+          .then(() => {
+            if (row > 0) {
               html += '</tr>'
             }
-            html += `<tr class="row${row}">`
-          }
-
-          html += `<td class="col${col}">`
-          scope.push(context)
-          return liquid.renderer
-            .renderTemplates(this.templates, scope)
-            .then((partial) => {
-              scope.pop(context)
-              html += partial
-              html += '</td>'
-              return html
-            })
-        })
-        .then(() => {
-          if (row > 0) {
-            html += '</tr>'
-          }
-          html += '</table>'
-          return html
-        })
+            html += '</table>'
+            return html
+          })
+      })
     }
   })
 }

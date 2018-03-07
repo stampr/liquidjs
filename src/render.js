@@ -49,29 +49,27 @@ var render = {
   evalValue: function (template, scope) {
     assert(scope, 'unable to evalValue: scope undefined')
     try {
-      var initialValue = Syntax.evalExp(template.initial, scope)
-      if (initialValue instanceof Promise) {
-        return initialValue.then(value => this.applyFilters(template, scope, value));
-      }
-      else {
-        return Promise.resolve(this.applyFilters(template, scope, initialValue));
-      }
+      // console.log('template.filters', template.filters)
+      return Syntax.evalExp(template.initial, scope).then(initialValue => {
+        return template.filters.reduce(
+          (promise, filter) => {
+            return promise.then(prev => {
+              return filter.render(prev, scope).then(next => {
+                // console.log('evalValue', {prev,next})
+                return next
+              })
+            })
+          },
+          Promise.resolve(initialValue))
+      });
     }
     catch (err) {
       return Promise.reject(err);
     }
   },
 
-  evalValueSync: function (template, scope) {
-    assert(scope, 'unable to evalValue: scope undefined')
-    var initialValue = Syntax.evalExp(template.initial, scope)
-    return this.applyFilters(template, scope, initialValue)
-  },
-
-  applyFilters: function (template, scope, initialValue) {
-    return template.filters.reduce(
-      (prev, filter) => filter.render(prev, scope),
-      initialValue)
+  applyFilters: function (filters, scope, initialValue) {
+    return 
   }
 }
 

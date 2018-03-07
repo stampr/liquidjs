@@ -1,4 +1,11 @@
 const Liquid = require('..')
+const firstSeries = require('../src/util/promise.js').firstSeries
+
+const evaluateBranch = (val, cond) => {
+  return Promise.all([ val, cond ]).then(results => {
+    return results[0] === results[1]
+  })
+}
 
 module.exports = function (liquid) {
   liquid.registerTag('case', {
@@ -27,15 +34,18 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      for (var i = 0; i < this.cases.length; i++) {
-        var branch = this.cases[i]
-        var val = Liquid.evalExp(branch.val, scope)
-        var cond = Liquid.evalExp(this.cond, scope)
-        if (val === cond) {
-          return liquid.renderer.renderTemplates(branch.templates, scope)
-        }
-      }
-      return liquid.renderer.renderTemplates(this.elseTemplates, scope)
+      return firstSeries(this.cases, branch => {
+        return new Promise((resolve, reject) => {
+          evaluateBranch(Liquid.evalExp(branch.val, scope), Liquid.evalExp(this.cond, scope)).then(found => {
+            if (found) {
+              resolve(liquid.renderer.renderTemplates(branch.templates, scope))
+            }
+            else {
+              reject()
+            }
+          })
+        })
+      }, () => liquid.renderer.renderTemplates(this.elseTemplates, scope))
     }
   })
 }

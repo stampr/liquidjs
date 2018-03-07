@@ -24,21 +24,21 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      var group = Liquid.evalValue(this.group, scope)
-      var fingerprint = `cycle:${group}:` + this.candidates.join(',')
+      return Liquid.evalValue(this.group, scope).then(group => {
+        var fingerprint = `cycle:${group}:` + this.candidates.join(',')
 
-      var groups = scope.opts.groups = scope.opts.groups || {}
-      var idx = groups[fingerprint]
+        var groups = scope.opts.groups = scope.opts.groups || {}
+        var idx = groups[fingerprint]
 
-      if (idx === undefined) {
-        idx = groups[fingerprint] = 0
-      }
+        if (idx === undefined) {
+          idx = groups[fingerprint] = 0
+        }
 
-      var candidate = this.candidates[idx]
-      idx = (idx + 1) % this.candidates.length
-      groups[fingerprint] = idx
-
-      return Promise.resolve(Liquid.evalValue(candidate, scope))
+        var candidate = this.candidates[idx]
+        idx = (idx + 1) % this.candidates.length
+        groups[fingerprint] = idx
+        return Liquid.evalValue(candidate, scope)
+      })
     }
   })
 }

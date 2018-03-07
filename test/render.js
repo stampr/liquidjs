@@ -48,22 +48,9 @@ describe('render', function () {
     filter.register('date', date)
     filter.register('time', time)
     var tpl = Template.parseValue('foo.bar[0] | date: "b" | time:2')
-    render.evalValueSync(tpl, scope)
-    expect(date).to.have.been.calledWith('a', 'b')
-    expect(time).to.have.been.calledWith('y', 2)
-  })
-
-  describe('.evalValueSync()', function () {
-    it('should throw when scope undefined', function () {
-      expect(function () {
-        render.evalValueSync()
-      }).to.throw(/scope undefined/)
-    })
-    it('should eval value', function () {
-      filter.register('date', (l, r) => l + r)
-      filter.register('time', (l, r) => l + 3 * r)
-      var tpl = Template.parseValue('foo.bar[0] | date: "b" | time:2')
-      expect(render.evalValueSync(tpl, scope)).to.equal('ab6')
+    return render.evalValue(tpl, scope).then(() => {
+      expect(date).to.have.been.calledWith('a', 'b')
+      expect(time).to.have.been.calledWith('y', 2)
     })
   })
 

@@ -10,21 +10,33 @@ function evalExp (exp, scope) {
     var operatorRE = operatorREs[i]
     var expRE = new RegExp(`^(${lexical.quoteBalanced.source})(${operatorRE.source})(${lexical.quoteBalanced.source})$`)
     if ((match = exp.match(expRE))) {
-      var l = evalExp(match[1], scope)
-      var op = operators[match[2].trim()]
-      var r = evalExp(match[3], scope)
-      return op(l, r)
+      return (function(match) {
+        return Promise.all([
+          evalExp(match[1], scope),
+          evalExp(match[3], scope),
+        ]).then(results => {
+          var l = results[0]
+          var r = results[1]
+          var op = operators[match[2].trim()]
+          return op(l, r)
+        })
+      })(match)
     }
   }
 
   if ((match = exp.match(lexical.rangeLine))) {
-    var low = evalValue(match[1], scope)
-    var high = evalValue(match[2], scope)
-    var range = []
-    for (var j = low; j <= high; j++) {
-      range.push(j)
-    }
-    return range
+    return Promise.all([
+      evalValue(match[1], scope),
+      evalValue(match[2], scope),
+    ]).then(results => {
+      var low = results[0]
+      var high = results[1]
+      var range = []
+      for (var j = low; j <= high; j++) {
+        range.push(j)
+      }
+      return range
+    })
   }
 
   return evalValue(exp, scope)
@@ -32,13 +44,14 @@ function evalExp (exp, scope) {
 
 function evalValue (str, scope) {
   str = str && str.trim()
-  if (!str) return undefined
+  if (!str) return Promise.resolve(undefined)
 
   if (lexical.isLiteral(str)) {
-    return lexical.parseLiteral(str)
+    return Promise.resolve(lexical.parseLiteral(str))
   }
   if (lexical.isVariable(str)) {
-    return scope.get(str)
+    var scopedValue = scope.get(str);
+    return scopedValue instanceof Promise ? scopedValue : Promise.resolve(scopedValue)
   }
   throw new TypeError(`cannot eval '${str}' as value`)
 }

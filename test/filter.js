@@ -4,6 +4,7 @@ const sinonChai = require('sinon-chai')
 const expect = chai.expect
 
 chai.use(sinonChai)
+chai.use(require('chai-as-promised'))
 
 var filter = require('../src/filter.js')()
 var Scope = require('../src/scope.js')
@@ -35,23 +36,24 @@ describe('filter', function () {
 
   it('should register a simple filter', function () {
     filter.register('upcase', x => x.toUpperCase())
-    expect(filter.construct('upcase').render('foo', scope)).to.equal('FOO')
+    return expect(filter.construct('upcase').render('foo', scope)).to.eventually.equal('FOO')
   })
 
   it('should register a argumented filter', function () {
     filter.register('add', (a, b) => a + b)
-    expect(filter.construct('add: 2').render(3, scope)).to.equal(5)
+    return expect(filter.construct('add: 2').render(3, scope)).to.eventually.equal(5)
   })
 
   it('should register a multi-argumented filter', function () {
     filter.register('add', (a, b, c) => a + b + c)
-    expect(filter.construct('add: 2, "c"').render(3, scope)).to.equal('5c')
+    return expect(filter.construct('add: 2, "c"').render(3, scope)).to.eventually.equal('5c')
   })
 
   it('should call filter with corrct arguments', function () {
     var spy = sinon.spy()
     filter.register('foo', spy)
-    filter.construct('foo: 33').render('foo', scope)
-    expect(spy).to.have.been.calledWith('foo', 33)
+    return filter.construct('foo: 33').render('foo', scope).then(() => {
+      expect(spy).to.have.been.calledWith('foo', 33)
+    })
   })
 })

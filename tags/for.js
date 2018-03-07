@@ -37,61 +37,61 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      var collection = Liquid.evalExp(this.collection, scope)
-
-      if (!Array.isArray(collection)) {
-        if (_.isString(collection) && collection.length > 0) {
-          collection = [collection]
-        } else if (_.isObject(collection)) {
-          collection = Object.keys(collection).map((key) => [key, collection[key]])
+      return Liquid.evalExp(this.collection, scope).then(collection => {
+        if (!Array.isArray(collection)) {
+          if (_.isString(collection) && collection.length > 0) {
+            collection = [collection]
+          } else if (_.isObject(collection)) {
+            collection = Object.keys(collection).map((key) => [key, collection[key]])
+          }
         }
-      }
-      if (!Array.isArray(collection) || !collection.length) {
-        return liquid.renderer.renderTemplates(this.elseTemplates, scope)
-      }
-
-      var length = collection.length
-      var offset = hash.offset || 0
-      var limit = (hash.limit === undefined) ? collection.length : hash.limit
-
-      collection = collection.slice(offset, offset + limit)
-      if (this.reversed) collection.reverse()
-
-      var contexts = collection.map((item, i) => {
-        var ctx = {}
-        ctx[this.variable] = item
-        ctx.forloop = {
-          first: i === 0,
-          index: i + 1,
-          index0: i,
-          last: i === length - 1,
-          length: length,
-          rindex: length - i,
-          rindex0: length - i - 1
+        if (!Array.isArray(collection) || !collection.length) {
+          return liquid.renderer.renderTemplates(this.elseTemplates, scope)
         }
-        return ctx
+
+        var length = collection.length
+        var offset = hash.offset || 0
+        var limit = (hash.limit === undefined) ? collection.length : hash.limit
+
+        collection = collection.slice(offset, offset + limit)
+        if (this.reversed) collection.reverse()
+
+        var contexts = collection.map((item, i) => {
+          var ctx = {}
+          ctx[this.variable] = item
+          ctx.forloop = {
+            first: i === 0,
+            index: i + 1,
+            index0: i,
+            last: i === length - 1,
+            length: length,
+            rindex: length - i,
+            rindex0: length - i - 1
+          }
+          return ctx
+        })
+
+        var html = ''
+        return mapSeries(contexts, (context) => {
+          return Promise.resolve()
+            .then(() => scope.push(context))
+            .then(() => liquid.renderer.renderTemplates(this.templates, scope))
+            .then(partial => (html += partial))
+            .catch(e => {
+              if (e instanceof RenderBreakError) {
+                html += e.resolvedHTML
+                if (e.message === 'continue') return
+              }
+              throw e
+            })
+            .then(() => scope.pop())
+        }).catch((e) => {
+          if (e instanceof RenderBreakError && e.message === 'break') {
+            return
+          }
+          throw e
+        }).then(() => html)
       })
-
-      var html = ''
-      return mapSeries(contexts, (context) => {
-        return Promise.resolve()
-          .then(() => scope.push(context))
-          .then(() => liquid.renderer.renderTemplates(this.templates, scope))
-          .then(partial => (html += partial))
-          .catch(e => {
-            if (e instanceof RenderBreakError) {
-              html += e.resolvedHTML
-              if (e.message === 'continue') return
-            }
-            throw e
-          })
-          .then(() => scope.pop())
-      }).catch((e) => {
-        if (e instanceof RenderBreakError && e.message === 'break') {
-          return
-        }
-        throw e
-      }).then(() => html)
     }
   })
 }

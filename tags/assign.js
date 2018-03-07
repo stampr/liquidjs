@@ -13,8 +13,10 @@ module.exports = function (liquid) {
       this.value = match[2]
     },
     render: function (scope) {
-      scope.set(this.key, liquid.evalValue(this.value, scope))
-      return Promise.resolve('')
+      return liquid.evalValue(this.value, scope).then(value => {
+        scope.set(this.key, value)
+        return ''
+      })
     }
   })
 }

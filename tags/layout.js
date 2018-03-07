@@ -26,29 +26,30 @@ module.exports = function (liquid) {
       this.tpls = liquid.parser.parse(remainTokens)
     },
     render: function (scope, hash) {
-      var layout = scope.opts.dynamicPartials ? Liquid.evalValue(this.layout, scope) : this.staticLayout
-      assert(layout, `cannot apply layout with empty filename`)
+      return (scope.opts.dynamicPartials ? Liquid.evalValue(this.layout, scope) : Promise.resolve(this.staticLayout)).then(layout => {
+        assert(layout, `cannot apply layout with empty filename`)
 
-      // render the remaining tokens immediately
-      scope.opts.blockMode = 'store'
-      return liquid.renderer.renderTemplates(this.tpls, scope)
-        .then(html => {
-          if (scope.opts.blocks[''] === undefined) {
-            scope.opts.blocks[''] = html
-          }
-          return liquid.getTemplate(layout, scope.opts.root)
-        })
-        .then(templates => {
-          // push the hash
-          scope.push(hash)
-          scope.opts.blockMode = 'output'
-          return liquid.renderer.renderTemplates(templates, scope)
-        })
-        // pop the hash
-        .then(partial => {
-          scope.pop()
-          return partial
-        })
+        // render the remaining tokens immediately
+        scope.opts.blockMode = 'store'
+        return liquid.renderer.renderTemplates(this.tpls, scope)
+          .then(html => {
+            if (scope.opts.blocks[''] === undefined) {
+              scope.opts.blocks[''] = html
+            }
+            return liquid.getTemplate(layout, scope.opts.root)
+          })
+          .then(templates => {
+            // push the hash
+            scope.push(hash)
+            scope.opts.blockMode = 'output'
+            return liquid.renderer.renderTemplates(templates, scope)
+          })
+          // pop the hash
+          .then(partial => {
+            scope.pop()
+            return partial
+          })
+      })
     }
   })
 
