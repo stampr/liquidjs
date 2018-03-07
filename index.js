@@ -35,6 +35,7 @@ var _engine = {
     return this
   },
   parse: function (html, filepath) {
+    html = this.options.preprocess(html);
     var tokens = tokenizer.parse(html, filepath, this.options)
     return this.parser.parse(tokens)
   },
@@ -94,7 +95,8 @@ var _engine = {
             .then(str => this.parse(str))
             .then(tpl => (this.cache[filepath] = tpl))
         } else {
-          return readFileAsync(filepath).then(str => this.parse(str, filepath))
+          return readFileAsync(filepath)
+            .then(str => this.parse(str, filepath))
         }
       })
   },
@@ -160,7 +162,8 @@ function factory (options) {
     trim_value_left: false,
     greedy: true,
     strict_filters: false,
-    strict_variables: false
+    strict_variables: false,
+    preprocess: str => str,
   }, options)
   options.root = normalizeStringArray(options.root)
 

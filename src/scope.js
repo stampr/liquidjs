@@ -17,6 +17,9 @@ var Scope = {
       if (!/undefined variable/.test(e.message) || this.opts.strict_variables) {
         throw e
       }
+      if (!this.opts.strict_variables) {
+        return '';
+      }
     }
   },
   set: function (k, v) {
