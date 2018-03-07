@@ -1,5 +1,5 @@
 const Liquid = require('..')
-const assert = require('../src/util/assert.js')
+const assert = require('../util/assert.js')
 const lexical = Liquid.lexical
 
 module.exports = function (liquid) {

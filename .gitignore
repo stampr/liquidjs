@@ -39,3 +39,6 @@ jspm_packages
 # vim
 .*.swp
 package-lock.json
+
+.DS_Store
+Thumbs.db

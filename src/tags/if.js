@@ -1,30 +1,27 @@
 const Liquid = require('..')
-const firstSeries = require('../src/util/promise.js').firstSeries
-
-const evaluateBranch = (val, cond) => {
-  return Promise.all([ val, cond ]).then(results => {
-    return results[0] === results[1]
-  })
-}
+const firstSeries = require('../util/promise.js').firstSeries
 
 module.exports = function (liquid) {
-  liquid.registerTag('case', {
+  liquid.registerTag('if', {
 
     parse: function (tagToken, remainTokens) {
-      this.cond = tagToken.args
-      this.cases = []
+      this.branches = []
       this.elseTemplates = []
 
-      var p = []
+      var p
       var stream = liquid.parser.parseStream(remainTokens)
-        .on('tag:when', token => {
-          this.cases.push({
-            val: token.args,
+        .on('start', () => this.branches.push({
+          cond: tagToken.args,
+          templates: (p = [])
+        }))
+        .on('tag:elsif', token => {
+          this.branches.push({
+            cond: token.args,
             templates: p = []
           })
         })
         .on('tag:else', () => (p = this.elseTemplates))
-        .on('tag:endcase', token => stream.stop())
+        .on('tag:endif', token => stream.stop())
         .on('template', tpl => p.push(tpl))
         .on('end', x => {
           throw new Error(`tag ${tagToken.raw} not closed`)
@@ -34,10 +31,10 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      return firstSeries(this.cases, branch => {
+      return firstSeries(this.branches, branch => {
         return new Promise((resolve, reject) => {
-          evaluateBranch(Liquid.evalExp(branch.val, scope), Liquid.evalExp(this.cond, scope)).then(found => {
-            if (found) {
+          return Liquid.evalExp(branch.cond, scope).then(cond => {
+            if (Liquid.isTruthy(cond)) {
               resolve(liquid.renderer.renderTemplates(branch.templates, scope))
             }
             else {

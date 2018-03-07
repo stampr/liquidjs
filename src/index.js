@@ -1,22 +1,22 @@
-const Scope = require('./src/scope')
-const _ = require('./src/util/underscore.js')
-const assert = require('./src/util/assert.js')
-const tokenizer = require('./src/tokenizer.js')
-const statFileAsync = require('./src/util/fs.js').statFileAsync
-const readFileAsync = require('./src/util/fs.js').readFileAsync
+const Scope = require('./scope')
+const _ = require('./util/underscore.js')
+const assert = require('./util/assert.js')
+const tokenizer = require('./tokenizer.js')
+const statFileAsync = require('./util/fs.js').statFileAsync
+const readFileAsync = require('./util/fs.js').readFileAsync
 const path = require('path')
-const url = require('./src/util/url.js')
-const Render = require('./src/render.js')
-const lexical = require('./src/lexical.js')
-const Tag = require('./src/tag.js')
-const Filter = require('./src/filter.js')
-const Parser = require('./src/parser')
-const Syntax = require('./src/syntax.js')
+const url = require('./util/url.js')
+const Render = require('./render.js')
+const lexical = require('./lexical.js')
+const Tag = require('./tag.js')
+const Filter = require('./filter.js')
+const Parser = require('./parser')
+const Syntax = require('./syntax.js')
 const tags = require('./tags')
 const filters = require('./filters')
 const Promise = require('any-promise')
-const anySeries = require('./src/util/promise.js').anySeries
-const Errors = require('./src/util/error.js')
+const anySeries = require('./util/promise.js').anySeries
+const Errors = require('./util/error.js')
 
 var _engine = {
   init: function (tag, filter, options) {
@@ -35,7 +35,6 @@ var _engine = {
     return this
   },
   parse: function (html, filepath) {
-    html = this.options.preprocess(html);
     var tokens = tokenizer.parse(html, filepath, this.options)
     return this.parser.parse(tokens)
   },
@@ -163,7 +162,7 @@ function factory (options) {
     greedy: true,
     strict_filters: false,
     strict_variables: false,
-    preprocess: str => str,
+    templateProvider: null,
   }, options)
   options.root = normalizeStringArray(options.root)
 

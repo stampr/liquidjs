@@ -1,7 +1,7 @@
 const Liquid = require('..')
 const Promise = require('any-promise')
 const lexical = Liquid.lexical
-const assert = require('../src/util/assert.js')
+const assert = require('../util/assert.js')
 const staticFileRE = /\S+/
 
 /*

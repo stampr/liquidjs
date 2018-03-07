@@ -1,7 +1,7 @@
 const Liquid = require('..')
 const lexical = Liquid.lexical
 const re = new RegExp(`(${lexical.identifier.source})`)
-const assert = require('../src/util/assert.js')
+const assert = require('../util/assert.js')
 
 module.exports = function (liquid) {
   liquid.registerTag('capture', {
