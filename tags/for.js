@@ -38,6 +38,7 @@ module.exports = function (liquid) {
 
     render: function (scope, hash) {
       return Liquid.evalExp(this.collection, scope).then(collection => {
+        collection = collection || [];
         if (!Array.isArray(collection)) {
           if (_.isString(collection) && collection.length > 0) {
             collection = [collection]

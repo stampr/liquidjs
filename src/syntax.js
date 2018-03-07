@@ -50,8 +50,13 @@ function evalValue (str, scope) {
     return Promise.resolve(lexical.parseLiteral(str))
   }
   if (lexical.isVariable(str)) {
-    var scopedValue = scope.get(str);
-    return scopedValue instanceof Promise ? scopedValue : Promise.resolve(scopedValue)
+    try {
+      var scopedValue = scope.get(str);
+      return scopedValue instanceof Promise ? scopedValue : Promise.resolve(scopedValue)
+    }
+    catch (err) {
+      return Promise.resolve('');
+    }
   }
   throw new TypeError(`cannot eval '${str}' as value`)
 }
