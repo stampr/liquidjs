@@ -51,16 +51,18 @@ var render = {
     try {
       // console.log('template.filters', template.filters)
       return Syntax.evalExp(template.initial, scope).then(initialValue => {
-        return template.filters.reduce(
-          (promise, filter) => {
-            return promise.then(prev => {
-              return filter.render(prev, scope).then(next => {
-                // console.log('evalValue', {prev,next})
-                return next
-              })
-            })
-          },
-          Promise.resolve(initialValue))
+        return template.filters.reduce((promise, filter) => {
+          return promise.then(prev => {
+            return filter.render(prev, scope).then(next => {
+              // console.log('evalValue', {prev,next})
+              return next
+            }).catch(err => {
+              if (err) {
+                console.log(err);
+              }
+            });
+          })
+        }, Promise.resolve(initialValue));
       });
     }
     catch (err) {
