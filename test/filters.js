@@ -426,5 +426,7 @@ describe('filters', function () {
     });
     it('should pass variables',
       () => test('{{ "scoped" | t: var1: "world", var2: foo }}', 'hello world foo bar', engine));
+    it('should work with filters',
+      () => test('{{ "scoped" | t: var1: "world", var2: foo | capitalize }}', 'Hello world foo bar', engine));
   })
 })
