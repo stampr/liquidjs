@@ -403,6 +403,7 @@ describe('filters', function () {
     var engine = Liquid({
       locale: new Liquid.Locale({
         hello: 'world',
+        scoped: 'hello {{ var1 }} foo {{ var2 }}',
         here: {
           is: {
             a: [
@@ -423,5 +424,7 @@ describe('filters', function () {
     it('should throw if key is invalid', () => {
       return expect(engine.parseAndRender('{{ "anything.here" | t }}', {})).to.be.rejectedWith(/invalid translation key/);
     });
+    it('should pass variables',
+      () => test('{{ "scoped" | t: var1: "world", var2: foo }}', 'hello world foo bar', engine));
   })
 })

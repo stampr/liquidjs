@@ -1,5 +1,7 @@
 const strftime = require('./util/strftime.js')
 const _ = require('./util/underscore.js')
+const argsToObject = require('./util/args.js').argsToObject;
+const Scope = require('./scope.js');
 const isTruthy = require('./syntax.js').isTruthy
 
 var escapeMap = {
@@ -96,10 +98,16 @@ var createFilters = liquid => {
     },
     'upcase': str => stringify(str).toUpperCase(),
     'url_encode': encodeURIComponent,
-    't': v => filters.translate(v),
-    'translate': v => {
+    't': function() { 
+      return filters.translate.apply(null, arguments);
+    },
+    'translate': function() {
+      let args    = Array.from(arguments);
+      let v       = args.shift();
+      let context = argsToObject(args);
       if (liquid.options.locale) {
-        return liquid.options.locale.translate(v);
+        let translation = liquid.options.locale.translate(v);
+        return liquid.parseAndRender(translation, context);
       }
       else {
         return '';

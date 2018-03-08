@@ -4,7 +4,6 @@ const lexical = require('./lexical.js')
 const assert = require('./util/assert.js')
 const AssertionError = require('./util/error.js').AssertionError
 
-const placeholderBoundary = '_#$#_';
 const delimiters = [ `'`, '"' ];
 
 var Scope = {

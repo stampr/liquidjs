@@ -67,10 +67,6 @@ var render = {
       return Promise.reject(err);
     }
   },
-
-  applyFilters: function (filters, scope, initialValue) {
-    return 
-  }
 }
 
 function factory () {

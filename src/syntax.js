@@ -65,5 +65,8 @@ function isFalsy (val) {
 }
 
 module.exports = {
-  evalExp, evalValue, isTruthy, isFalsy
+  evalExp,  
+  evalValue, 
+  isTruthy, 
+  isFalsy,
 }
