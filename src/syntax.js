@@ -38,7 +38,10 @@ function evalExp (exp, scope) {
       return range
     })
   }
-
+  // need to support if this.boolean? is true
+  if (exp.substr(-1) === '?') {
+    exp = exp.substr(0, exp.length - 1);
+  }
   return evalValue(exp, scope)
 }
 
