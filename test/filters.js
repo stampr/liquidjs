@@ -1,7 +1,8 @@
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 const expect = chai.expect
-var liquid = require('..')()
+var Liquid = require('..');
+var liquid = Liquid()
 chai.use(chaiAsPromised)
 
 var ctx = {
@@ -19,8 +20,9 @@ var ctx = {
   }]
 }
 
-function test (src, dst) {
-  return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal(dst)
+function test (src, dst, engine) {
+  engine = engine || liquid;
+  return expect(engine.parseAndRender(src, ctx)).to.eventually.equal(dst)
 }
 
 describe('filters', function () {
@@ -395,5 +397,31 @@ describe('filters', function () {
       return Array.prototype.slice.call(arguments).join(',')
     })
     it('should support object', () => test('{{ "a" | obj_test: k1: "v1", k2: "v2" }}', 'a,k1,v1,k2,v2'))
+  })
+
+  describe('translate', function() {
+    var engine = Liquid({
+      locale: new Liquid.Locale({
+        hello: 'world',
+        here: {
+          is: {
+            a: [
+              [
+                { deep: 'key' },
+              ]
+            ]
+          }
+        }
+      }),
+    });
+    it('should translate keys',
+      () => test('{{ "hello" | t }}', 'world', engine));
+    it('should translate deep keys',
+      () => test('{{ "here.is.a[0][0].deep" | t }}', 'key', engine));
+    it('should return empty string if no locale',
+      () => test('{{ "anything.here" | t }}', ''));
+    it('should throw if key is invalid', () => {
+      return expect(engine.parseAndRender('{{ "anything.here" | t }}', {})).to.be.rejectedWith(/invalid translation key/);
+    });
   })
 })

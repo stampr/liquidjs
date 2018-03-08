@@ -14,6 +14,7 @@ const Parser = require('./parser')
 const Syntax = require('./syntax.js')
 const tags = require('./tags')
 const filters = require('./filters')
+const Locale = require('./locale')
 const Promise = require('any-promise')
 const anySeries = require('./util/promise.js').anySeries
 const Errors = require('./util/error.js')
@@ -174,6 +175,7 @@ function factory (options) {
     strict_filters: false,
     strict_variables: false,
     templateProvider: null,
+    locale: null,
   }, options)
   options.root = normalizeStringArray(options.root)
 
@@ -199,5 +201,6 @@ factory.Types = {
   RenderBreakError: Errors.RenderBreakError,
   AssertionError: Errors.AssertionError
 }
+factory.Locale = Locale;
 
 module.exports = factory
