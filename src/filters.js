@@ -102,11 +102,28 @@ var createFilters = liquid => {
       return filters.translate.apply(null, arguments);
     },
     'translate': function() {
-      let args    = Array.from(arguments);
-      let v       = args.shift();
-      let context = argsToObject(args);
       if (liquid.options.locale) {
+        let args        = Array.from(arguments);
+        let v           = args.shift();
+        let context     = argsToObject(args);
         let translation = liquid.options.locale.translate(v);
+        if (context.count && typeof translation === 'object') {
+          let { count } = context;
+          let countId;
+          if (count === 0) {
+            countId = 'zero';
+          }
+          else if (count === 1) {
+            countId = 'one';
+          }
+          else if (count === 2) {
+            countId = 'two';
+          }
+          else {
+            countId = 'other';
+          }
+          translation = translation[countId];
+        }
         return liquid.parseAndRender(translation, context);
       }
       else {
