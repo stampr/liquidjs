@@ -40,6 +40,16 @@ describe('lexical', function () {
     expect(lexical.isLiteral("'a bcd'")).to.equal(true)
   })
 
+  it('should match nil and null', function () {
+    expect(lexical.isLiteral('nil')).to.equal(true);
+    expect(lexical.isLiteral('null')).to.equal(true);
+  })
+
+  it('should match empty and blank', function () {
+    expect(lexical.isLiteral('blank')).to.equal(true);
+    expect(lexical.isLiteral('empty')).to.equal(true);
+  })
+
   describe('.isVariable()', function () {
     it('should return true for foo', function () {
       expect(lexical.isVariable('foo')).to.equal(true)
@@ -107,6 +117,16 @@ describe('lexical', function () {
     it('should throw if non-literal', function () {
       var fn = () => lexical.parseLiteral('a')
       expect(fn).to.throw("cannot parse 'a' as literal")
+    })
+
+    it('should evaluate nil and null to null', function () {
+      expect(lexical.parseLiteral('nil')).to.equal(null);
+      expect(lexical.parseLiteral('null')).to.equal(null);
+    })
+
+    it('should evaluate blank and empty to an empty string', function () {
+      expect(lexical.parseLiteral('blank')).to.equal('');
+      expect(lexical.parseLiteral('empty')).to.equal('');
     })
   })
 

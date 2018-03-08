@@ -12,7 +12,7 @@ var bool = /true|false/
 // peoperty access
 var identifier = /[\w-]+/
 var subscript = new RegExp(`\\[(?:${quoted.source}|[\\w-\\.]+)\\]`)
-var literal = new RegExp(`(?:${quoted.source}|${bool.source}|${number.source})`)
+var literal = new RegExp(`(?:${quoted.source}|${bool.source}|${number.source}|nil|null|empty|blank)`)
 var variable = new RegExp(`${identifier.source}(?:\\.${identifier.source}|${subscript.source})*`)
 
 // range related
@@ -70,6 +70,12 @@ function matchValue (str) {
 }
 
 function parseLiteral (str) {
+  if ([ 'nil', 'null' ].indexOf(str) > -1) {
+    return null;
+  }
+  if ([ 'empty', 'blank' ].indexOf(str) > -1) {
+    return '';
+  }
   var res = str.match(numberLine)
   if (res) {
     return Number(str)

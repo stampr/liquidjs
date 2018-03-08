@@ -22,7 +22,7 @@ describe('tags/decrement', function () {
   })
 
   it('should decrement undefined', function () {
-    var src = '{% decrement empty %}{{empty}}'
+    var src = '{% decrement emptyval %}{{emptyval}}'
     return expect(liquid.parseAndRender(src))
       .to.eventually.equal('-1')
   })

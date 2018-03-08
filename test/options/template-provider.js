@@ -11,7 +11,6 @@ describe('template provider', function () {
   before(function () {
     engine = Liquid({
       templateProvider(filepath) {
-        console.log('templateProvider', filepath);
         return new Promise((resolve, reject) => {
           switch (filepath) {
             case 'simple':

@@ -16,7 +16,7 @@ describe('tags/increment', function () {
   })
 
   it('should increment undefined', function () {
-    var src = '{% increment empty %}{{empty}}'
+    var src = '{% increment emptyval %}{{emptyval}}'
     return expect(liquid.parseAndRender(src))
       .to.eventually.equal('1')
   })
