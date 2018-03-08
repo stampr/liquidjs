@@ -112,5 +112,5 @@ module.exports = {
   parseLiteral,
   isRange,
   matchValue,
-  isInteger
+  isInteger,
 }

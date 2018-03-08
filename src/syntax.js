@@ -45,7 +45,6 @@ function evalExp (exp, scope) {
 function evalValue (str, scope) {
   str = str && str.trim()
   if (!str) return Promise.resolve(undefined)
-
   if (lexical.isLiteral(str)) {
     // console.log('evalValue isLiteral', str);
     return Promise.resolve(lexical.parseLiteral(str))
