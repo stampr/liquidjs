@@ -75,13 +75,12 @@ var _engine = {
   },
   getTemplate: function (filepath, root) {
     if (this.options.templateProvider) {
-      this.options.templateProvider(filepath).then(str => {
-        return this.parse(str).then(tpl => {
-          if (this.options.cache) {
-            this.cache[filepath] = tpl; 
-          }
-          return tpl;
-        });
+      return this.options.templateProvider(filepath).then(str => {
+        let tpl = this.parse(str);
+        if (this.options.cache) {
+          this.cache[filepath] = tpl; 
+        }
+        return tpl;
       });
     }
     else {
