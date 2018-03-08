@@ -109,20 +109,18 @@ var createFilters = liquid => {
         let translation = liquid.options.locale.translate(v);
         if (context.count && typeof translation === 'object') {
           let { count } = context;
-          let countId;
           if (count === 0) {
-            countId = 'zero';
+            translation = translation.zero || translation.other;
           }
           else if (count === 1) {
-            countId = 'one';
+            translation = translation.one || translation.other;
           }
           else if (count === 2) {
-            countId = 'two';
+            translation = translation.two || translation.other;
           }
           else {
-            countId = 'other';
+            translation = translation.other;
           }
-          translation = translation[countId];
         }
         return liquid.parseAndRender(translation, context);
       }
