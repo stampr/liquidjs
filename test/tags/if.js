@@ -118,6 +118,10 @@ describe('tags/if', function () {
       var src = '{% if emptyArray == empty %}yes{% else %}no{% endif %}'
       return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('yes')
     });
+    it.only('should evaluate true for [] == blank', function () {
+      var src = '{% if emptyArray == blank %}yes{% else %}no{% endif %}'
+      return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('yes')
+    });
     it('should evaluate false for [] != empty', function () {
       var src = '{% if emptyArray != empty %}yes{% else %}no{% endif %}'
       return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('no')
