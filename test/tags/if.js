@@ -63,7 +63,7 @@ describe('tags/if', function () {
         .to.eventually.equal('XY')
     })
   })
-  describe('comparasion to null', function () {
+  describe('comparison to null', function () {
     it('should evaluate false for null < 10', function () {
       var src = '{% if null < 10 %}yes{% else %}no{% endif %}'
       return expect(liquid.parseAndRender(src, ctx))
@@ -112,4 +112,23 @@ describe('tags/if', function () {
         .to.eventually.equal('no')
     })
   })
+
+  describe('comparison to empty', function () {
+    it('should evaluate true for [] == empty', function () {
+      var src = '{% if emptyArray == empty %}yes{% else %}no{% endif %}'
+      return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('yes')
+    });
+    it('should evaluate false for [] != empty', function () {
+      var src = '{% if emptyArray != empty %}yes{% else %}no{% endif %}'
+      return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('no')
+    });
+    it('should evaluate true for "" == empty', function () {
+      var src = '{% if emptyString == empty %}yes{% else %}no{% endif %}'
+      return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('yes')
+    });
+    it('should evaluate false for "" != empty', function () {
+      var src = '{% if emptyString != empty %}yes{% else %}no{% endif %}'
+      return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('no')
+    });
+  });
 })
