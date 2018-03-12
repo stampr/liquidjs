@@ -5,6 +5,31 @@ const AssertionError = require('./util/error.js').AssertionError
 
 const delimiters = [ `'`, '"' ];
 
+const forbidden = [
+  'empty',
+  'blank',
+  'nil',
+  'null',
+  'undefined',
+  'true',
+  'false',
+  '',
+];
+
+const isVariableValid = varName => {
+  return forbidden.indexOf((varName || '').trim().toLowerCase()) < 0;
+};
+
+const validateContextObject = ctx => {
+  if (null === ctx || undefined === ctx) return;
+  let keys = Object.keys(ctx);
+  keys.forEach(v => {
+    if (!isVariableValid(v)) {
+      throw new Error(`invalid context variable name; "${v}" is forbidden`);
+    }
+  });
+};
+
 var Scope = {
   getAll: function () {
     var ctx = {};
@@ -29,12 +54,14 @@ var Scope = {
     });
   },
   set: function (k, v) {
+    if (!isVariableValid(k)) throw new Error(`invalid variable name; "${v}" is forbidden`);
     var scope = this.findScopeFor(k);
     setPropertyByPath(scope, k, v);
     return this;
   },
   push: function (ctx) {
     assert(ctx, `trying to push ${ctx} into scopes`);
+    validateContextObject(ctx);
     return this.scopes.push(ctx);
   },
   pop: function () {
@@ -52,10 +79,11 @@ var Scope = {
   },
   unshift: function (ctx) {
     assert(ctx, `trying to push ${ctx} into scopes`)
-    return this.scopes.unshift(ctx)
+    validateContextObject(ctx);
+    return this.scopes.unshift(ctx);
   },
   shift: function () {
-    return this.scopes.shift()
+    return this.scopes.shift();
   },
 
   getPropertyByPath: function (scopes, path) {
@@ -201,6 +229,12 @@ function matchRightBracket (str, begin) {
   return -1
 }
 
+exports.forbidden = forbidden;
+
+exports.isVariableValid = isVariableValid;
+
+exports.validateContextObject = validateContextObject;
+
 exports.factory = function (ctx, opts) {
   var defaultOptions = {
     dynamicPartials: true,
@@ -211,6 +245,7 @@ exports.factory = function (ctx, opts) {
   }
   var scope = Object.create(Scope)
   scope.opts = _.assign(defaultOptions, opts)
+  validateContextObject(ctx);
   scope.scopes = [ctx || {}]
   return scope
 }

@@ -19,6 +19,19 @@ describe('scope', function () {
     scope = Scope.factory(ctx)
   })
 
+  describe('#isVariableValid()', function () {
+    expect(Scope.isVariableValid('ok')).to.be.true;
+    Scope.forbidden.forEach(forbiddenVariable => {
+      expect(Scope.isVariableValid(forbiddenVariable)).to.be.false;
+    });
+  });
+
+  describe('#validateContextObject()', function () {
+    let test = Scope.factory({});
+    expect(() => test.push({ ok: true })).to.not.throw();
+    expect(() => test.push({ empty: true })).to.throw(/invalid context variable name/);
+  });
+
   describe('#propertyAccessSeq()', function () {
     it('should handle top-level access', function () {
       return expect(scope.propertyAccessSeq('foo'))

@@ -16,7 +16,9 @@ describe('expression', function () {
     scope = Scope.factory({
       one: 1,
       two: 2,
-      empty: '',
+      emptystr: '',
+      emptyarr: [],
+      nonemptyarr: ['hello'],
       x: 'XXX',
       y: undefined,
       z: null
@@ -93,7 +95,7 @@ describe('expression', function () {
         return expect(evalExp('1<2 or x contains "x"', scope)).to.eventually.equal(true)
       })
       it('should support value and !=', function () {
-        return expect(evalExp('empty and empty != ""', scope)).to.eventually.equal(false)
+        return expect(evalExp('emptystr and emptystr != ""', scope)).to.eventually.equal(false)
       })
     })
 
@@ -102,6 +104,18 @@ describe('expression', function () {
         expect(evalExp('(2..4)', scope)).to.eventually.deep.equal([2, 3, 4]),
         expect(evalExp('(two..4)', scope)).to.eventually.deep.equal([2, 3, 4]),
       ])
+    })
+
+    it('empty comparisons', function () {
+      return Promise.all([
+        expect(evalExp('emptyarr == empty', scope)).to.eventually.be.true,
+        expect(evalExp('nonemptyarr == empty', scope)).to.eventually.be.false,
+        expect(evalExp('emptystr == empty', scope)).to.eventually.be.true,
+        expect(evalExp('one != empty', scope)).to.eventually.be.true,
+        expect(evalExp('x != empty', scope)).to.eventually.be.true,
+        expect(evalExp('x != y', scope)).to.eventually.be.true,
+        expect(evalExp('x != z', scope)).to.eventually.be.true,
+      ]);
     })
   })
 })
