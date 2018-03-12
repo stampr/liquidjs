@@ -113,6 +113,11 @@ describe('expression', function () {
         expect(evalExp('emptystr == empty', scope)).to.eventually.be.true,
         expect(evalExp('one != empty', scope)).to.eventually.be.true,
         expect(evalExp('x != empty', scope)).to.eventually.be.true,
+        expect(evalExp('emptyarr == blank', scope)).to.eventually.be.true,
+        expect(evalExp('nonemptyarr == blank', scope)).to.eventually.be.false,
+        expect(evalExp('emptystr == blank', scope)).to.eventually.be.true,
+        expect(evalExp('one != blank', scope)).to.eventually.be.true,
+        expect(evalExp('x != blank', scope)).to.eventually.be.true,
         expect(evalExp('x != y', scope)).to.eventually.be.true,
         expect(evalExp('x != z', scope)).to.eventually.be.true,
       ]);
