@@ -98,9 +98,6 @@ var createFilters = liquid => {
     },
     'upcase': str => stringify(str).toUpperCase(),
     'url_encode': encodeURIComponent,
-    't': function() { 
-      return filters.translate.apply(null, arguments);
-    },
     'translate': function() {
       if (liquid.options.locale) {
         let args        = Array.from(arguments);
@@ -129,6 +126,8 @@ var createFilters = liquid => {
       }
     },
   };
+  // alias
+  filters.t = filters.translate;
   return filters;
 };
 

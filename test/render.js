@@ -1,5 +1,4 @@
 const chai = require('chai')
-const Promise = require('any-promise')
 const chaiAsPromised = require('chai-as-promised')
 const expect = chai.expect
 const sinonChai = require('sinon-chai')

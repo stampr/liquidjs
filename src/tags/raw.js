@@ -1,4 +1,3 @@
-const Promise = require('any-promise')
 
 module.exports = function (liquid) {
   liquid.registerTag('raw', {

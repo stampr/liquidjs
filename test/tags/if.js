@@ -34,10 +34,10 @@ describe('tags/if', function () {
       return expect(liquid.parseAndRender(src, ctx))
         .to.eventually.equal('a')
     })
-    it('should return true if empty string', function () {
-      var src = '{%if emptyString%}a{%endif%}'
+    it('should return false if empty string', function () {
+      var src = '{%if emptyString%}a{% else %}b{%endif%}'
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('a')
+        .to.eventually.equal('b');
     })
   })
   describe('expression as condition', function () {

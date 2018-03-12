@@ -19,11 +19,11 @@ describe('tags/case', function () {
       .to.eventually.equal('foo')
   })
   it('should resolve empty string if not hit', function () {
-    var src = '{% case empty %}' +
+    var src = '{% case emptystr %}' +
             '{% when "foo" %}foo{% when ""%}bar' +
             '{%endcase%}'
     var ctx = {
-      empty: ''
+      emptystr: ''
     }
     return expect(liquid.parseAndRender(src, ctx))
       .to.eventually.equal('bar')

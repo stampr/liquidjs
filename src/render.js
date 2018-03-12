@@ -1,5 +1,4 @@
 const Syntax = require('./syntax.js')
-const Promise = require('any-promise')
 const mapSeries = require('./util/promise.js').mapSeries
 const RenderBreakError = require('./util/error.js').RenderBreakError
 const RenderError = require('./util/error.js').RenderError
@@ -51,15 +50,12 @@ var render = {
     try {
       // console.log('template.filters', template.filters)
       return Syntax.evalExp(template.initial, scope).then(initialValue => {
+        // console.log('template.filters; initialValue', initialValue);
         return template.filters.reduce((promise, filter) => {
           return promise.then(prev => {
             return filter.render(prev, scope).then(next => {
               // console.log('evalValue', {prev,next})
-              return next
-            }).catch(err => {
-              if (err) {
-                console.log(err);
-              }
+              return next;
             });
           })
         }, Promise.resolve(initialValue));

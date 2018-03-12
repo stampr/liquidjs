@@ -15,7 +15,6 @@ const Syntax = require('./syntax.js')
 const tags = require('./tags')
 const filters = require('./filters')
 const Locale = require('./locale')
-const Promise = require('any-promise')
 const anySeries = require('./util/promise.js').anySeries
 const Errors = require('./util/error.js')
 

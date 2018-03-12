@@ -1,6 +1,6 @@
-const operators = require('./operators.js')(isTruthy)
-const lexical = require('./lexical.js')
-const assert = require('../src/util/assert.js')
+const lexical = require('./lexical.js');
+const operators = require('./operators.js')(isTruthy, lexical.EMPTY);
+const assert = require('../src/util/assert.js');
 
 function evalExp (exp, scope) {
   assert(scope, 'unable to evalExp: scope undefined')
@@ -10,17 +10,16 @@ function evalExp (exp, scope) {
     var operatorRE = operatorREs[i]
     var expRE = new RegExp(`^(${lexical.quoteBalanced.source})(${operatorRE.source})(${lexical.quoteBalanced.source})$`)
     if ((match = exp.match(expRE))) {
-      return (function(match) {
-        return Promise.all([
-          evalExp(match[1], scope),
-          evalExp(match[3], scope),
-        ]).then(results => {
-          var l = results[0]
-          var r = results[1]
-          var op = operators[match[2].trim()]
-          return op(l, r)
-        })
-      })(match)
+      return Promise.all([
+        evalExp(match[1], scope),
+        evalExp(match[3], scope),
+      ]).then(results => {
+        let l = results[0];
+        let r = results[1];
+        var op = operators[match[2].trim()]
+        // console.log('evalExp', l, op, r);
+        return op(l, r);
+      });
     }
   }
 
@@ -64,7 +63,7 @@ function isTruthy (val) {
 }
 
 function isFalsy (val) {
-  return val === false || undefined === val || val === null || (typeof val === 'string' && val.length === 0);
+  return val === false || undefined === val || val === null || lexical.EMPTY === val || (typeof val === 'string' && val.length === 0);
 }
 
 module.exports = {

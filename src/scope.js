@@ -1,4 +1,3 @@
-const Promise = require('any-promise');
 const _ = require('./util/underscore.js')
 const lexical = require('./lexical.js')
 const assert = require('./util/assert.js')

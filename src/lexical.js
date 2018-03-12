@@ -1,3 +1,7 @@
+function EmptyVariable(){}
+EmptyVariable.prototype.toString = function() { return ''; };
+const EMPTY = new EmptyVariable();
+
 // quote related
 var singleQuoted = /'[^']*'/
 var doubleQuoted = /"[^"]*"/
@@ -71,27 +75,33 @@ function matchValue (str) {
 
 function parseLiteral (str) {
   if ([ 'nil', 'null' ].indexOf(str) > -1) {
+    // console.log('parseLiteral; nil', str);
     return null;
   }
   if ([ 'empty', 'blank' ].indexOf(str) > -1) {
-    return '';
+    // console.log('parseLiteral; empty', str);
+    return EMPTY;
   }
-  var res = str.match(numberLine)
+  var res = str.match(numberLine);
   if (res) {
-    return Number(str)
+    // console.log('parseLiteral; number', str);
+    return Number(str);
   }
-  res = str.match(boolLine)
+  res = str.match(boolLine);
   if (res) {
-    return str.toLowerCase() === 'true'
+    // console.log('parseLiteral; bool', str);
+    return str.toLowerCase() === 'true';
   }
-  res = str.match(quotedLine)
+  res = str.match(quotedLine);
   if (res) {
-    return str.slice(1, -1)
+    // console.log('parseLiteral; quoted', str);
+    return str.slice(1, -1);
   }
-  throw new TypeError(`cannot parse '${str}' as literal`)
+  throw new TypeError(`cannot parse '${str}' as literal`);
 }
 
 module.exports = {
+  EMPTY,
   quoted,
   number,
   bool,

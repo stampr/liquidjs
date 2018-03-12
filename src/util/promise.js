@@ -1,4 +1,3 @@
-const Promise = require('any-promise')
 
 /*
  * Call functions in serial until someone resolved.

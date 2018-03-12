@@ -51,7 +51,7 @@ describe('expression', function () {
     expect(isTruthy(false)).to.be.false
     expect(isTruthy(null)).to.be.false
     expect(isTruthy('foo')).to.be.true
-    expect(isTruthy('')).to.be.true
+    expect(isTruthy('')).to.be.false
     expect(isTruthy(0)).to.be.true
     expect(isTruthy(1)).to.be.true
     expect(isTruthy(1.1)).to.be.true
