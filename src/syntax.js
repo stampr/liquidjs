@@ -52,8 +52,16 @@ function evalValue (str, scope) {
     return Promise.resolve(lexical.parseLiteral(str))
   }
   if (lexical.isVariable(str)) {
-    // console.log('evalValue isVariable', str, scope);
-    return scope.get(str);
+    if ('.size' === str.slice(-5)) {
+      let key = str.slice(0, -5);
+      return scope.get(key).then(result => {
+        return result.length;
+      });
+    }
+    else {
+      // console.log('evalValue isVariable', str, scope);
+      return scope.get(str);
+    }
   }
   throw new TypeError(`cannot eval '${str}' as value`)
 }

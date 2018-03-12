@@ -1,8 +1,8 @@
-const Syntax = require('./syntax.js')
-const mapSeries = require('./util/promise.js').mapSeries
-const RenderBreakError = require('./util/error.js').RenderBreakError
-const RenderError = require('./util/error.js').RenderError
-const assert = require('./util/assert.js')
+const Syntax = require('./syntax.js');
+const mapSeries = require('./util/promise.js').mapSeries;
+const RenderBreakError = require('./util/error.js').RenderBreakError;
+const RenderError = require('./util/error.js').RenderError;
+const assert = require('./util/assert.js');
 
 var render = {
 

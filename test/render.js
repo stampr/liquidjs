@@ -81,5 +81,5 @@ describe('render', function () {
         expect(render.evalValue(tpl, rejectedScope)).to.be.rejectedWith(Error, 'promise_value_rejected')
       })
     });
-  })
+  });
 })

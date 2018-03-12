@@ -45,6 +45,14 @@ describe('expression', function () {
       var fn = () => evalValue('===')
       return expect(fn).to.throw("cannot eval '===' as value")
     })
+
+    it('should support size for string length', function () {
+      return expect(evalValue('x.size', scope)).to.eventually.equal(3);
+    })
+
+    it('should support size for array length', function () {
+      return expect(evalValue('nonemptyarr.size', scope)).to.eventually.equal(1);
+    })
   })
 
   describe('.isTruthy()', function () {

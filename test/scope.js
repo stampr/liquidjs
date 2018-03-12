@@ -120,13 +120,6 @@ describe('scope', function () {
     it('should return undefined when not exist', function () {
       return expect(scope.get('foo.foo.foo')).to.eventually.be.undefined;
     })
-
-    it('should support array size as an alias to length', function (done) {
-      scope.get('bar.arr').then(arr => {
-        expect(arr.length).to.equal(arr.size).and.to.equal(2);
-        done();
-      });
-    })
   })
 
   describe('#set', function () {
