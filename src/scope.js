@@ -1,7 +1,8 @@
-const _ = require('./util/underscore.js')
-const lexical = require('./lexical.js')
-const assert = require('./util/assert.js')
-const AssertionError = require('./util/error.js').AssertionError
+const _ = require('./util/underscore.js');
+const compatibleArray = require('./util/compatible-array.js');
+const lexical = require('./lexical.js');
+const assert = require('./util/assert.js');
+const AssertionError = require('./util/error.js').AssertionError;
 
 const delimiters = [ `'`, '"' ];
 
@@ -28,6 +29,15 @@ const validateContextObject = ctx => {
       throw new Error(`invalid context variable name; "${v}" is forbidden`);
     }
   });
+};
+
+const translateValue = value => {
+  if (Array.isArray(value)) {
+    return compatibleArray(value);
+  }
+  else {
+    return value;
+  }
 };
 
 var Scope = {
@@ -95,7 +105,7 @@ var Scope = {
         }
         var key = paths.shift();
         var value = getValueFromScopes(key, scopes);
-        (value instanceof Promise ? value : Promise.resolve(value)).then(rootValue => {
+        (value instanceof Promise ? value : Promise.resolve(translateValue(value))).then(rootValue => {
           try {
             let result = paths.reduce((value, key) => {
               if (_.isNil(value)) {
@@ -103,7 +113,7 @@ var Scope = {
               }
               return getValueFromParent(key, value);
             }, rootValue);
-            return resolve(result);
+            return resolve(translateValue(result));
           }
           catch (err) {
             return reject(err);
