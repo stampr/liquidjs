@@ -55,7 +55,15 @@ function evalValue (str, scope) {
     if ('.size' === str.slice(-5)) {
       let key = str.slice(0, -5);
       return scope.get(key).then(result => {
-        return result.length;
+        if (Array.isArray(result) || typeof result === 'string') {
+          return result.length;
+        }
+        else if (result === null || result === undefined) {
+          return 0;
+        }
+        else {
+          return result;
+        }
       });
     }
     else {

@@ -53,6 +53,10 @@ describe('expression', function () {
     it('should support size for array length', function () {
       return expect(evalValue('nonemptyarr.size', scope)).to.eventually.equal(1);
     })
+
+    it('should support undefined', function () {
+      return expect(evalValue('y.size', scope)).to.eventually.equal(0);
+    })
   })
 
   describe('.isTruthy()', function () {
