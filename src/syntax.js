@@ -64,7 +64,7 @@ function isTruthy (val) {
 }
 
 function isFalsy (val) {
-  return val === false || undefined === val || val === null
+  return val === false || undefined === val || val === null || (typeof val === 'string' && val.length === 0);
 }
 
 module.exports = {
