@@ -5,7 +5,7 @@ const whiteSpaceCtrl = require('./whitespace-ctrl.js')
 const assert = require('./util/assert.js')
 
 function parse (input, file, options) {
-  assert(_.isString(input), 'illegal input')
+  assert(_.isString(input), `illegal input; "${'' + input}"`);
 
   var rLiquid = /({%-?([\s\S]*?)-?%})|({{-?([\s\S]*?)-?}})/g
   var currIndent = 0

@@ -2,6 +2,7 @@ const chai = require('chai')
 const expect = chai.expect
 var syntax = require('../src/syntax.js')
 var Scope = require('../src/scope.js')
+var SafeObject = require('../src/safe-object.js');
 
 chai.use(require('chai-as-promised'))
 
@@ -21,9 +22,12 @@ describe('expression', function () {
       nonemptyarr: ['hello'],
       x: 'XXX',
       y: undefined,
-      z: null
-    })
-  })
+      z: null,
+      safeObject_1_Val_A: new SafeObject('a'),
+      safeObject_2_Val_B: new SafeObject('b'),
+      safeObject_3_Val_A: new SafeObject('a'),
+    });
+  });
 
   describe('.evalValue()', function () {
     it('should eval literals', function () {
@@ -137,4 +141,22 @@ describe('expression', function () {
       ]);
     })
   })
+
+  describe('SafeObject', function() {
+    it('should evaluate safe obejcts', function() {
+      return Promise.all([
+        expect(evalExp('safeObject_1_Val_A == safeObject_2_Val_B', scope)).to.eventually.be.false,
+        expect(evalExp('safeObject_1_Val_A != safeObject_2_Val_B', scope)).to.eventually.be.true,
+        expect(evalExp('safeObject_1_Val_A == safeObject_3_Val_A', scope)).to.eventually.be.true,
+        expect(evalExp('safeObject_1_Val_A != safeObject_3_Val_A', scope)).to.eventually.be.false,
+        expect(evalExp('safeObject_1_Val_A > safeObject_3_Val_A', scope)).to.eventually.be.false,
+        expect(evalExp('safeObject_1_Val_A < safeObject_3_Val_A', scope)).to.eventually.be.false,
+        expect(evalExp('safeObject_1_Val_A >= safeObject_3_Val_A', scope)).to.eventually.be.true,
+        expect(evalExp('safeObject_1_Val_A <= safeObject_3_Val_A', scope)).to.eventually.be.true,
+        expect(evalExp('safeObject_1_Val_A and safeObject_2_Val_B', scope)).to.eventually.be.true,
+        expect(evalExp('safeObject_1_Val_A or safeObject_2_Val_B', scope)).to.eventually.be.true,
+        expect(evalExp('safeObject_1_Val_A contains safeObject_3_Val_A', scope)).to.eventually.be.true,
+      ]);
+    });
+  });
 })
