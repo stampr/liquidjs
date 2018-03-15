@@ -1,3 +1,5 @@
+const Drop = require('./drop.js');
+
 const comparingEmpty = (EMPTY, ...vars) => !!vars.find(v => v === EMPTY);
 
 const createOperator = (EMPTY, handler) => (l, r) => {
