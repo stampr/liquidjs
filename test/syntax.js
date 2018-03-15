@@ -132,6 +132,8 @@ describe('expression', function () {
         expect(evalExp('x != blank', scope)).to.eventually.be.true,
         expect(evalExp('x != y', scope)).to.eventually.be.true,
         expect(evalExp('x != z', scope)).to.eventually.be.true,
+        expect(evalExp('y == empty', scope)).to.eventually.be.true,
+        expect(evalExp('z == empty', scope)).to.eventually.be.true,
       ]);
     })
   })

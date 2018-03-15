@@ -124,7 +124,7 @@ describe('lexical', function () {
       expect(lexical.parseLiteral('null')).to.equal(null);
     })
 
-    it('should evaluate blank and empty to an empty string', function () {
+    it('should evaluate blank and empty to the const EMPTY object', function () {
       expect(lexical.parseLiteral('blank')).to.equal(lexical.EMPTY);
       expect(lexical.parseLiteral('empty')).to.equal(lexical.EMPTY);
     })

@@ -1,5 +1,7 @@
 const Drop = require('./drop.js');
 
+const isNullOrUndefined = value => null === value || undefined === value;
+
 const comparingEmpty = (EMPTY, ...vars) => !!vars.find(v => v === EMPTY);
 
 const createOperator = (EMPTY, handler) => (l, r) => {
@@ -7,8 +9,9 @@ const createOperator = (EMPTY, handler) => (l, r) => {
   //       because both [] == empty and '' == empty, but i don't think
   //       {} == empty.  since [].toString() is converted to '' this works
   if (comparingEmpty(EMPTY, l, r)) { 
-    l = '' + l;
-    r = '' + r;
+    // if comparing to empty, null or undefined is evaluated as an empty string
+    l = isNullOrUndefined(l) ? '' : '' + l;
+    r = isNullOrUndefined(l) ? '' : '' + r;
   }
   return handler(l, r);
 };
