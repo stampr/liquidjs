@@ -104,8 +104,9 @@ var createFilters = liquid => {
         let v           = args.shift();
         let context     = argsToObject(args);
         let translation = liquid.options.locale.translate(v);
-        if (context.count && typeof translation === 'object') {
+        if ('count' in context && typeof translation === 'object') {
           let { count } = context;
+          if (count === undefined) count = 0;
           if (count === 0) {
             translation = translation.zero || translation.other;
           }

@@ -235,6 +235,8 @@ exports.isVariableValid = isVariableValid;
 
 exports.validateContextObject = validateContextObject;
 
+exports.setPropertyByPath = setPropertyByPath;
+
 exports.factory = function (ctx, opts) {
   var defaultOptions = {
     dynamicPartials: true,

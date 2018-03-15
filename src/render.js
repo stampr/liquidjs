@@ -73,8 +73,8 @@ function factory () {
 }
 
 function stringify (val) {
-  if (typeof val === 'string') return val
-  return JSON.stringify(val)
+  if (typeof val === 'string') return val;
+  return JSON.stringify(val);
 }
 
 module.exports = factory
