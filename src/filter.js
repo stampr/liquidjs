@@ -13,7 +13,7 @@ module.exports = function (options) {
     render: function (output, scope) {
       return Promise.all(this.args.map(arg => Syntax.evalValue(arg, scope))).then(args => {
         args.unshift(output)
-        return this.filter.apply(null, args);
+        return this.filter.apply(scope, args);
       });
     },
     parse: function (str) {

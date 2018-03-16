@@ -1,8 +1,9 @@
-const strftime = require('./util/strftime.js')
-const _ = require('./util/underscore.js')
+const strftime = require('./util/strftime.js');
+const _ = require('./util/underscore.js');
 const argsToObject = require('./util/args.js').argsToObject;
 const Scope = require('./scope.js');
-const isTruthy = require('./syntax.js').isTruthy
+const isTruthy = require('./syntax.js').isTruthy;
+const LOCALE_SCOPE_KEY = require('./locale.js').LOCALE_SCOPE_KEY;
 
 var escapeMap = {
   '&': '&amp;',
@@ -99,32 +100,64 @@ var createFilters = liquid => {
     'upcase': str => stringify(str).toUpperCase(),
     'url_encode': encodeURIComponent,
     'translate': function() {
-      if (liquid.options.locale) {
-        let args        = Array.from(arguments);
-        let v           = args.shift();
-        let context     = argsToObject(args);
-        let translation = liquid.options.locale.translate(v);
-        if ('count' in context && typeof translation === 'object') {
-          let { count } = context;
-          if (count === undefined) count = 0;
-          if (count === 0) {
-            translation = translation.zero || translation.other;
+      let scope   = this;
+      let args    = Array.from(arguments);
+      let v       = args.shift();
+      let context = argsToObject(args);
+      return scope.get(LOCALE_SCOPE_KEY).then(scopeLocales => {
+        let locales = [];
+        if (scopeLocales && scopeLocales.length > 0) {
+          if (!Array.isArray(scopeLocales)) {
+            throw new Error(`scope locales must be array; "${typeof scopeLocales}" provided`);
           }
-          else if (count === 1) {
-            translation = translation.one || translation.other;
-          }
-          else if (count === 2) {
-            translation = translation.two || translation.other;
-          }
-          else {
-            translation = translation.other;
-          }
+          locales.push.apply(locales, scopeLocales);
         }
-        return liquid.parseAndRender(translation, context);
-      }
-      else {
-        return '';
-      }
+        if (liquid.options.locale) { // add/check last
+          locales.push(liquid.options.locale);
+        }
+        if (locales.length) {
+          for (let i=0; i < locales.length; i++) {
+            let locale = locales[i];
+            let translation;
+            try {
+              translation = locale.translate(v);
+            }
+            catch (err) {
+              if (err.message.indexOf('invalid translation key') > -1) {
+                continue; // not found.  try next locale
+              }
+              else {
+                throw err;
+              }
+            }
+            let countExists   = 'count' in context;
+            let notNull       = null !== translation && undefined !== translation;
+            let typeIsObject  = typeof translation === 'object';
+            if (countExists && notNull && typeIsObject) {
+              let { count } = context;
+              if (count === undefined) count = 0;
+              if (count === 0) {
+                translation = translation.zero || translation.other;
+              }
+              else if (count === 1) {
+                translation = translation.one || translation.other;
+              }
+              else if (count === 2) {
+                translation = translation.two || translation.other;
+              }
+              else {
+                translation = translation.other;
+              }
+            }
+            return liquid.parseAndRender(translation, context);
+          }
+          // it wasn't found in any of the provided locales
+          throw new Error(`invalid translation key: "${v}"; not found in any of the provided locales`);
+        }
+        else {
+          return '';
+        }
+      });
     },
   };
   // alias

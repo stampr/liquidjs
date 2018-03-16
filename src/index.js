@@ -34,8 +34,8 @@ var _engine = {
 
     return this
   },
-  loadTranslation: function(translation) {
-    this.options.locale = new Locale(translation);
+  loadTranslation: function(translation, id) {
+    this.options.locale = new Locale(translation, id);
   },
   parse: function (html, filepath) {
     var tokens = tokenizer.parse(html, filepath, this.options)
