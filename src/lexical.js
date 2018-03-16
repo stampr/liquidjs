@@ -1,5 +1,6 @@
 function EmptyVariable(){}
 EmptyVariable.prototype.toString = function() { return ''; };
+EmptyVariable.prototype.toJSON = function() { return ''; };
 const EMPTY = new EmptyVariable();
 
 // quote related

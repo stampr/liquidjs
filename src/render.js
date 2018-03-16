@@ -1,4 +1,5 @@
 const Syntax = require('./syntax.js');
+const EMPTY = require('./lexical.js').EMPTY;
 const mapSeries = require('./util/promise.js').mapSeries;
 const RenderBreakError = require('./util/error.js').RenderBreakError;
 const RenderError = require('./util/error.js').RenderError;
@@ -73,8 +74,15 @@ function factory () {
 }
 
 function stringify (val) {
-  if (typeof val === 'string') return val;
-  return JSON.stringify(val);
+  if (typeof val === 'string') {
+    return val;
+  }
+  else if (null === val || undefined === val || EMPTY === val) {
+    return '';
+  }
+  else {
+    return JSON.stringify(val);
+  }
 }
 
 module.exports = factory
