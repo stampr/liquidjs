@@ -15,11 +15,22 @@ describe('expression', function () {
 
   beforeEach(function () {
     scope = Scope.factory({
+      size: 'hello:size',
+      first: 'hello:first',
+      last: 'hello:last',
+      dotnotation: {
+        size: 'hello:size',
+        first: 'hello:first',
+        last: 'hello:last',
+      },
       one: 1,
       two: 2,
       emptystr: '',
       emptyarr: [],
-      nonemptyarr: ['hello'],
+      emptyobj: {},
+      nonemptyarr: ['hello','world'],
+      nonemptyobj: {one:'hello',two:'world'},
+      nonemptystr: '123',
       x: 'XXX',
       y: undefined,
       z: null,
@@ -50,17 +61,68 @@ describe('expression', function () {
       return expect(fn).to.throw("cannot eval '===' as value")
     })
 
-    it('should support size for string length', function () {
-      return expect(evalValue('x.size', scope)).to.eventually.equal(3);
-    })
-
-    it('should support size for array length', function () {
-      return expect(evalValue('nonemptyarr.size', scope)).to.eventually.equal(1);
-    })
-
-    it('should support undefined', function () {
-      return expect(evalValue('y.size', scope)).to.eventually.equal(0);
-    })
+    describe('dot notation methods', function() {
+      describe('size', function() {
+        it('should not match variables', function () {
+          return expect(evalValue('size', scope)).to.eventually.equal('hello:size');
+        });
+        it('should not match objects that contain property matching method', function () {
+          return expect(evalValue('dotnotation.size', scope)).to.eventually.equal('hello:size');
+        });
+        it('should support size for string length', function () {
+          return expect(evalValue('nonemptystr.size', scope)).to.eventually.equal(3);
+        });
+        it('should support size for array length', function () {
+          return expect(evalValue('nonemptyarr.size', scope)).to.eventually.equal(2);
+        });
+        it('should support size for object key length', function () {
+          return expect(evalValue('nonemptyobj.size', scope)).to.eventually.equal(2);
+        });
+        it('should support undefined', function () {
+          return expect(evalValue('y.size', scope)).to.eventually.equal(0);
+        });
+      });
+      describe('first', function() {
+        it('should not match variables', function () {
+          return expect(evalValue('first', scope)).to.eventually.equal('hello:first');
+        });
+        it('should not match objects that contain property matching method', function () {
+          return expect(evalValue('dotnotation.first', scope)).to.eventually.equal('hello:first');
+        });
+        it('should support first for string', function () {
+          return expect(evalValue('nonemptystr.first', scope)).to.eventually.equal('1');
+        });
+        it('should support first for array', function () {
+          return expect(evalValue('nonemptyarr.first', scope)).to.eventually.equal('hello');
+        });
+        it('should support first for object key', function () {
+          return expect(evalValue('nonemptyobj.first', scope)).to.eventually.equal('hello');
+        });
+        it('should support undefined', function () {
+          return expect(evalValue('y.first', scope)).to.eventually.equal(null);
+        });
+      });
+      describe('last', function() {
+        it('should not match variables', function () {
+          return expect(evalValue('last', scope)).to.eventually.equal('hello:last');
+        });
+        it('should not match objects that contain property matching method', function () {
+          return expect(evalValue('dotnotation.last', scope)).to.eventually.equal('hello:last');
+        });
+        it('should support last for string', function () {
+          return expect(evalValue('nonemptystr.last', scope)).to.eventually.equal('3');
+        });
+        it('should support last for array', function () {
+          return expect(evalValue('nonemptyarr.last', scope)).to.eventually.equal('world');
+        });
+        it('should support last for object key', function () {
+          return expect(evalValue('nonemptyobj.last', scope)).to.eventually.equal('world');
+        });
+        it('should support undefined', function () {
+          return expect(evalValue('y.last', scope)).to.eventually.equal(null);
+        });
+      });
+    });
   })
 
   describe('.isTruthy()', function () {
@@ -138,6 +200,12 @@ describe('expression', function () {
         expect(evalExp('x != z', scope)).to.eventually.be.true,
         expect(evalExp('y == empty', scope)).to.eventually.be.true,
         expect(evalExp('z == empty', scope)).to.eventually.be.true,
+        expect(evalExp('null == empty', scope)).to.eventually.be.true,
+        expect(evalExp('undefined == empty', scope)).to.eventually.be.true,
+        expect(evalExp('undefined == undefined', scope)).to.eventually.be.true,
+        expect(evalExp('null == null', scope)).to.eventually.be.true,
+        expect(evalExp('empty == empty', scope)).to.eventually.be.true,
+        expect(evalExp('empty == blank', scope)).to.eventually.be.true,
       ]);
     })
   })

@@ -1,6 +1,7 @@
 const lexical = require('./lexical.js');
 const operators = require('./operators.js')(isTruthy, lexical.EMPTY);
-const assert = require('../src/util/assert.js');
+const assert = require('./util/assert.js');
+const compatibility = require('./util/compatibility.js');
 
 function evalExp (exp, scope) {
   assert(scope, 'unable to evalExp: scope undefined')
@@ -44,6 +45,7 @@ function evalExp (exp, scope) {
   return evalValue(exp, scope)
 }
 
+
 function evalValue (str, scope) {
   str = str && str.trim()
   if (!str) return Promise.resolve(undefined)
@@ -52,19 +54,18 @@ function evalValue (str, scope) {
     return Promise.resolve(lexical.parseLiteral(str))
   }
   if (lexical.isVariable(str)) {
-    if ('.size' === str.slice(-5)) {
-      let key = str.slice(0, -5);
-      return scope.get(key).then(result => {
-        if (Array.isArray(result) || typeof result === 'string') {
-          return result.length;
-        }
-        else if (result === null || result === undefined) {
-          return 0;
-        }
-        else {
-          return result;
-        }
-      });
+    // these are support via dot notation
+    if (compatibility.endsWith(str, '.size')) {
+      let key = compatibility.trimEnd(str, '.size');
+      return compatibility.compatSize(scope, key);
+    }
+    else if (compatibility.endsWith(str, '.first')) {
+      let key = compatibility.trimEnd(str, '.first');
+      return compatibility.compatFirst(scope, key);
+    }
+    else if (compatibility.endsWith(str, '.last')) {
+      let key = compatibility.trimEnd(str, '.last');
+      return compatibility.compatLast(scope, key);
     }
     else {
       // console.log('evalValue isVariable', str, scope);
