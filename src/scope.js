@@ -2,6 +2,7 @@ const _ = require('./util/underscore.js');
 const lexical = require('./lexical.js');
 const assert = require('./util/assert.js');
 const AssertionError = require('./util/error.js').AssertionError;
+const compatibility = require('./util/compatibility.js');
 
 const delimiters = [ `'`, '"' ];
 
@@ -98,9 +99,6 @@ var Scope = {
         (value instanceof Promise ? value : Promise.resolve(value)).then(rootValue => {
           try {
             let result = paths.reduce((value, key) => {
-              if (_.isNil(value)) {
-                throw new TypeError(`undefined variable: "${key}"`);
-              }
               return getValueFromParent(key, value);
             }, rootValue);
             return resolve(result);
@@ -198,9 +196,21 @@ function setPropertyByPath (obj, path, val) {
 }
 
 function getValueFromParent (key, value) {
-  return (key === 'size' && (_.isArray(value) || _.isString(value)))
-    ? value.length
-    : value[key]
+  if ('size' === key) {
+    return compatibility.compatSize(value);
+  }
+  else if ('first' === key) {
+    return compatibility.compatFirst(value);
+  }
+  else if ('last' === key) {
+    return compatibility.compatLast(value);
+  }
+  else {
+    if (_.isNil(value)) {
+      throw new TypeError(`undefined variable: "${key}"`);
+    }
+    return value[key];
+  }
 }
 
 function getValueFromScopes (key, scopes) {

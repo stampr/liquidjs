@@ -23,6 +23,16 @@ describe('expression', function () {
         first: 'hello:first',
         last: 'hello:last',
       },
+      dotnotation2: {
+        arr: [
+          {
+            value: 'hello:first',
+          },
+          {
+            value: 'hello:last',
+          },
+        ]
+      },
       one: 1,
       two: 2,
       emptystr: '',
@@ -101,6 +111,9 @@ describe('expression', function () {
         it('should support undefined', function () {
           return expect(evalValue('y.first', scope)).to.eventually.equal(null);
         });
+        it('should work anywhere in the object path', function() {
+          return expect(evalValue('dotnotation2.arr.first.value', scope)).to.eventually.equal('hello:first');
+        });
       });
       describe('last', function() {
         it('should not match variables', function () {
@@ -120,6 +133,9 @@ describe('expression', function () {
         });
         it('should support undefined', function () {
           return expect(evalValue('y.last', scope)).to.eventually.equal(null);
+        });
+        it('should work anywhere in the object path', function() {
+          return expect(evalValue('dotnotation2.arr.last.value', scope)).to.eventually.equal('hello:last');
         });
       });
     });

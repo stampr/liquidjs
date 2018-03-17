@@ -1,7 +1,6 @@
 const lexical = require('./lexical.js');
 const operators = require('./operators.js')(isTruthy, lexical.EMPTY);
 const assert = require('./util/assert.js');
-const compatibility = require('./util/compatibility.js');
 
 function evalExp (exp, scope) {
   assert(scope, 'unable to evalExp: scope undefined')
@@ -54,23 +53,8 @@ function evalValue (str, scope) {
     return Promise.resolve(lexical.parseLiteral(str))
   }
   if (lexical.isVariable(str)) {
-    // these are support via dot notation
-    if (compatibility.endsWith(str, '.size')) {
-      let key = compatibility.trimEnd(str, '.size');
-      return compatibility.compatSize(scope, key);
-    }
-    else if (compatibility.endsWith(str, '.first')) {
-      let key = compatibility.trimEnd(str, '.first');
-      return compatibility.compatFirst(scope, key);
-    }
-    else if (compatibility.endsWith(str, '.last')) {
-      let key = compatibility.trimEnd(str, '.last');
-      return compatibility.compatLast(scope, key);
-    }
-    else {
-      // console.log('evalValue isVariable', str, scope);
-      return scope.get(str);
-    }
+    // console.log('evalValue isVariable', str, scope);
+    return scope.get(str);
   }
   throw new TypeError(`cannot eval '${str}' as value`)
 }
