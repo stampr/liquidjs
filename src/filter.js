@@ -37,7 +37,9 @@ module.exports = function (options) {
       while ((match = valueRE.exec(argList.trim()))) {
         var v = match[0]
         var re = new RegExp(`${v}\\s*:`, 'g')
-        re.test(match.input) ? args.push(`'${v}'`) : args.push(v)
+        var keyMatch = re.exec(match.input);
+        var currentMatchIsKey = keyMatch && keyMatch.index === match.index;
+        currentMatchIsKey ? args.push(`'${v}'`) : args.push(v)
       }
 
       this.name = name
