@@ -14,7 +14,12 @@ describe('scope', function () {
         zoo: 'coo',
         'Mr.Smith': 'John',
         arr: ['a', 'b']
-      }
+      },
+      promise_parent: new Promise(resolve => process.nextTick(() => resolve({
+        promise_child: new Promise(resolve => process.nextTick(() => resolve({
+          id: 'hello',
+        }))),
+      }))),
     }
     scope = Scope.factory(ctx)
   })
@@ -119,6 +124,10 @@ describe('scope', function () {
 
     it('should return undefined when not exist', function () {
       return expect(scope.get('foo.foo.foo')).to.eventually.be.undefined;
+    })
+
+    it('should work with promises at any depth', function() {
+      return expect(scope.get('promise_parent.promise_child.id')).to.eventually.equal('hello');
     })
   })
 

@@ -39,7 +39,7 @@ var Scope = {
     }
     return ctx;
   },
-  get: function (str) {
+  getFromContext: function(str) {
     return new Promise((resolve, reject) => {
       this.getPropertyByPath(this.scopes, str).then(resolve).catch(err => {
         // console.log('get -> getPropertyByPath returned err:', err.message);
@@ -53,6 +53,16 @@ var Scope = {
         }
       });
     });
+  },
+  get: function (str) {
+    if (this.opts.beforeScopeProvides) {
+      return this.opts.beforeScopeProvides(str, this).then(() => {
+        return this.getFromContext(str);
+      });
+    }
+    else {
+      return this.getFromContext(str);
+    }
   },
   set: function (k, v) {
     if (!isVariableValid(k)) throw new Error(`invalid variable name; "${v}" is forbidden`);
@@ -88,26 +98,15 @@ var Scope = {
   },
 
   getPropertyByPath: function (scopes, path) {
-    return new Promise((resolve, reject) => {
-      this.propertyAccessSeq(path + '').then(paths => {
-        if (!paths.length) {
-          reject(new TypeError(`undefined variable: "${path}"`));
-          return;
-        }
-        var key = paths.shift();
-        var value = getValueFromScopes(key, scopes);
-        (value instanceof Promise ? value : Promise.resolve(value)).then(rootValue => {
-          try {
-            let result = paths.reduce((value, key) => {
-              return getValueFromParent(key, value);
-            }, rootValue);
-            return resolve(result);
-          }
-          catch (err) {
-            return reject(err);
-          }
-        }).catch(reject);
-      }).catch(reject);
+    return this.propertyAccessSeq(path + '').then(paths => {
+      if (!paths.length) {
+        throw new TypeError(`undefined variable: "${path}"`);
+      }
+      var key = paths.shift();
+      var value = getValueFromScopes(key, scopes);
+      return paths.reduce((value, key) => {
+        return value.then(value => getValueFromParent(key, value));
+      }, Promise.resolve(value));
     });
   },
 
@@ -137,7 +136,7 @@ var Scope = {
             tokenProviders.push(Promise.resolve(nameToken));
             cursor = nameEndIndex + 2; // the closing " and ]
             // log('BRACKET w/delimiter',nameEndIndex, nameToken);
-          } 
+          }
           else { // access by variable: foo[bar.coo]
             let variableEndIndex = matchRightBracket(str, cursor + 1);
             if (variableEndIndex < 0) {
@@ -253,7 +252,7 @@ exports.factory = function (ctx, opts) {
     strict_variables: false,
     strict_filters: false,
     blocks: {},
-    root: []
+    root: [],
   }
   var scope = Object.create(Scope)
   scope.opts = _.assign(defaultOptions, opts)

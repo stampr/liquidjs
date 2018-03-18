@@ -81,7 +81,7 @@ var _engine = {
       return this.options.templateProvider(filepath).then(str => {
         let tpl = this.parse(str);
         if (this.options.cache) {
-          this.cache[filepath] = tpl; 
+          this.cache[filepath] = tpl;
         }
         return tpl;
       });
@@ -177,6 +177,7 @@ function factory (options) {
     strict_filters: false,
     strict_variables: false,
     templateProvider: null,
+    beforeScopeProvides: null,
     locale: null,
   }, options)
   options.root = normalizeStringArray(options.root)
