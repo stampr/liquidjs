@@ -1,9 +1,151 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Liquid = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Liquid = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+"use strict";
+
+},{}],2:[function(require,module,exports){
+"use strict";
+
+},{}],3:[function(require,module,exports){
+"use strict";
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+// Copyright 2014 Simon Lydell
+// X11 (“MIT”) Licensed. (See LICENSE.)
+
+void function (root, factory) {
+  if (typeof define === "function" && define.amd) {
+    define(factory);
+  } else if ((typeof exports === "undefined" ? "undefined" : _typeof(exports)) === "object") {
+    module.exports = factory();
+  } else {
+    root.resolveUrl = factory();
+  }
+}(undefined, function () {
+
+  function resolveUrl() /* ...urls */{
+    var numUrls = arguments.length;
+
+    if (numUrls === 0) {
+      throw new Error("resolveUrl requires at least one argument; got none.");
+    }
+
+    var base = document.createElement("base");
+    base.href = arguments[0];
+
+    if (numUrls === 1) {
+      return base.href;
+    }
+
+    var head = document.getElementsByTagName("head")[0];
+    head.insertBefore(base, head.firstChild);
+
+    var a = document.createElement("a");
+    var resolved;
+
+    for (var index = 1; index < numUrls; index++) {
+      a.href = arguments[index];
+      resolved = a.href;
+      base.href = resolved;
+    }
+
+    head.removeChild(base);
+
+    return resolved;
+  }
+
+  return resolveUrl;
+});
+
+},{}],4:[function(require,module,exports){
 'use strict';
 
-var strftime = require('./src/util/strftime.js');
-var _ = require('./src/util/underscore.js');
-var isTruthy = require('./src/syntax.js').isTruthy;
+var lexical = require('./lexical.js');
+var Syntax = require('./syntax.js');
+var assert = require('./util/assert.js');
+var _ = require('./util/underscore.js');
+
+var valueRE = new RegExp('' + lexical.value.source, 'g');
+
+module.exports = function (options) {
+  options = _.assign({}, options);
+  var filters = {};
+
+  var _filterInstance = {
+    render: function render(output, scope) {
+      var _this = this;
+
+      return Promise.all(this.args.map(function (arg) {
+        return Syntax.evalValue(arg, scope);
+      })).then(function (args) {
+        args.unshift(output);
+        return _this.filter.apply(scope, args);
+      });
+    },
+    parse: function parse(str) {
+      var match = lexical.filterLine.exec(str);
+      assert(match, 'illegal filter: ' + str);
+
+      var name = match[1];
+      var argList = match[2] || '';
+      var filter = filters[name];
+      if (typeof filter !== 'function') {
+        if (options.strict_filters) {
+          throw new TypeError('undefined filter: ' + name);
+        }
+        this.name = name;
+        this.filter = function (x) {
+          return x;
+        };
+        this.args = [];
+        return this;
+      }
+
+      var args = [];
+      while (match = valueRE.exec(argList.trim())) {
+        var v = match[0];
+        var re = new RegExp(v + '\\s*:', 'g');
+        var keyMatch = re.exec(match.input);
+        var currentMatchIsKey = keyMatch && keyMatch.index === match.index;
+        currentMatchIsKey ? args.push('\'' + v + '\'') : args.push(v);
+      }
+
+      this.name = name;
+      this.filter = filter;
+      this.args = args;
+
+      return this;
+    }
+  };
+
+  function construct(str) {
+    var instance = Object.create(_filterInstance);
+    return instance.parse(str);
+  }
+
+  function register(name, filter) {
+    filters[name] = filter;
+  }
+
+  function clear() {
+    filters = {};
+  }
+
+  return {
+    construct: construct, register: register, clear: clear
+  };
+};
+
+},{"./lexical.js":7,"./syntax.js":14,"./util/assert.js":33,"./util/underscore.js":40}],5:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var strftime = require('./util/strftime.js');
+var _ = require('./util/underscore.js');
+var argsToObject = require('./util/args.js').argsToObject;
+var Scope = require('./scope.js');
+var isTruthy = require('./syntax.js').isTruthy;
+var LOCALE_SCOPE_KEY = require('./locale.js').LOCALE_SCOPE_KEY;
 
 var escapeMap = {
   '&': '&amp;',
@@ -20,154 +162,215 @@ var unescapeMap = {
   '&#39;': "'"
 };
 
-var filters = {
-  'abs': function abs(v) {
-    return Math.abs(v);
-  },
-  'append': function append(v, arg) {
-    return v + arg;
-  },
-  'capitalize': function capitalize(str) {
-    return stringify(str).charAt(0).toUpperCase() + str.slice(1);
-  },
-  'ceil': function ceil(v) {
-    return Math.ceil(v);
-  },
-  'concat': function concat(v, arg) {
-    return Array.prototype.concat.call(v, arg);
-  },
-  'date': function date(v, arg) {
-    var date = v;
-    if (v === 'now') {
-      date = new Date();
-    } else if (_.isString(v)) {
-      date = new Date(v);
-    }
-    return isValidDate(date) ? strftime(date, arg) : v;
-  },
-  'default': function _default(v, arg) {
-    return isTruthy(v) ? v : arg;
-  },
-  'divided_by': function divided_by(v, arg) {
-    return Math.floor(v / arg);
-  },
-  'downcase': function downcase(v) {
-    return v.toLowerCase();
-  },
-  'escape': escape,
-
-  'escape_once': function escape_once(str) {
-    return escape(unescape(str));
-  },
-  'first': function first(v) {
-    return v[0];
-  },
-  'floor': function floor(v) {
-    return Math.floor(v);
-  },
-  'join': function join(v, arg) {
-    return v.join(arg);
-  },
-  'last': function last(v) {
-    return v[v.length - 1];
-  },
-  'lstrip': function lstrip(v) {
-    return stringify(v).replace(/^\s+/, '');
-  },
-  'map': function map(arr, arg) {
-    return arr.map(function (v) {
-      return v[arg];
-    });
-  },
-  'minus': bindFixed(function (v, arg) {
-    return v - arg;
-  }),
-  'modulo': bindFixed(function (v, arg) {
-    return v % arg;
-  }),
-  'newline_to_br': function newline_to_br(v) {
-    return v.replace(/\n/g, '<br />');
-  },
-  'plus': bindFixed(function (v, arg) {
-    return Number(v) + Number(arg);
-  }),
-  'prepend': function prepend(v, arg) {
-    return arg + v;
-  },
-  'remove': function remove(v, arg) {
-    return v.split(arg).join('');
-  },
-  'remove_first': function remove_first(v, l) {
-    return v.replace(l, '');
-  },
-  'replace': function replace(v, pattern, replacement) {
-    return stringify(v).split(pattern).join(replacement);
-  },
-  'replace_first': function replace_first(v, arg1, arg2) {
-    return stringify(v).replace(arg1, arg2);
-  },
-  'reverse': function reverse(v) {
-    return v.reverse();
-  },
-  'round': function round(v, arg) {
-    var amp = Math.pow(10, arg || 0);
-    return Math.round(v * amp, arg) / amp;
-  },
-  'rstrip': function rstrip(str) {
-    return stringify(str).replace(/\s+$/, '');
-  },
-  'size': function size(v) {
-    return v.length;
-  },
-  'slice': function slice(v, begin, length) {
-    return v.substr(begin, length === undefined ? 1 : length);
-  },
-  'sort': function sort(v, arg) {
-    return v.sort(arg);
-  },
-  'split': function split(v, arg) {
-    return stringify(v).split(arg);
-  },
-  'strip': function strip(v) {
-    return stringify(v).trim();
-  },
-  'strip_html': function strip_html(v) {
-    return stringify(v).replace(/<\/?\s*\w+\s*\/?>/g, '');
-  },
-  'strip_newlines': function strip_newlines(v) {
-    return stringify(v).replace(/\n/g, '');
-  },
-  'times': function times(v, arg) {
-    return v * arg;
-  },
-  'truncate': function truncate(v, l, o) {
-    v = stringify(v);
-    o = o === undefined ? '...' : o;
-    l = l || 16;
-    if (v.length <= l) return v;
-    return v.substr(0, l - o.length) + o;
-  },
-  'truncatewords': function truncatewords(v, l, o) {
-    if (o === undefined) o = '...';
-    var arr = v.split(' ');
-    var ret = arr.slice(0, l).join(' ');
-    if (arr.length > l) ret += o;
-    return ret;
-  },
-  'uniq': function uniq(arr) {
-    var u = {};
-    return (arr || []).filter(function (val) {
-      if (u.hasOwnProperty(val)) {
-        return false;
+var createFilters = function createFilters(liquid) {
+  var filters = {
+    'abs': function abs(v) {
+      return Math.abs(v);
+    },
+    'append': function append(v, arg) {
+      return v + arg;
+    },
+    'capitalize': function capitalize(str) {
+      return stringify(str).charAt(0).toUpperCase() + str.slice(1);
+    },
+    'ceil': function ceil(v) {
+      return Math.ceil(v);
+    },
+    'concat': function concat(v, arg) {
+      return Array.prototype.concat.call(v, arg);
+    },
+    'date': function date(v, arg) {
+      var date = v;
+      if (v === 'now') {
+        date = new Date();
+      } else if (_.isString(v)) {
+        date = new Date(v);
       }
-      u[val] = true;
-      return true;
-    });
-  },
-  'upcase': function upcase(str) {
-    return stringify(str).toUpperCase();
-  },
-  'url_encode': encodeURIComponent
+      return isValidDate(date) ? strftime(date, arg) : v;
+    },
+    'default': function _default(v, arg) {
+      return isTruthy(v) ? v : arg;
+    },
+    'divided_by': function divided_by(v, arg) {
+      return Math.floor(v / arg);
+    },
+    'downcase': function downcase(v) {
+      return v.toLowerCase();
+    },
+    'escape': escape,
+
+    'escape_once': function escape_once(str) {
+      return escape(unescape(str));
+    },
+    'first': function first(v) {
+      return v[0];
+    },
+    'floor': function floor(v) {
+      return Math.floor(v);
+    },
+    'join': function join(v, arg) {
+      return Array.isArray(v) ? v.join(arg) : v;
+    },
+    'last': function last(v) {
+      return v[v.length - 1];
+    },
+    'lstrip': function lstrip(v) {
+      return stringify(v).replace(/^\s+/, '');
+    },
+    'map': function map(arr, arg) {
+      return arr.map(function (v) {
+        return v[arg];
+      });
+    },
+    'minus': bindFixed(function (v, arg) {
+      return v - arg;
+    }),
+    'modulo': bindFixed(function (v, arg) {
+      return v % arg;
+    }),
+    'newline_to_br': function newline_to_br(v) {
+      return v.replace(/\n/g, '<br />');
+    },
+    'plus': bindFixed(function (v, arg) {
+      return Number(v) + Number(arg);
+    }),
+    'prepend': function prepend(v, arg) {
+      return arg + v;
+    },
+    'remove': function remove(v, arg) {
+      return v.split(arg).join('');
+    },
+    'remove_first': function remove_first(v, l) {
+      return v.replace(l, '');
+    },
+    'replace': function replace(v, pattern, replacement) {
+      return stringify(v).split(pattern).join(replacement);
+    },
+    'replace_first': function replace_first(v, arg1, arg2) {
+      return stringify(v).replace(arg1, arg2);
+    },
+    'reverse': function reverse(v) {
+      return v.reverse();
+    },
+    'round': function round(v, arg) {
+      var amp = Math.pow(10, arg || 0);
+      return Math.round(v * amp, arg) / amp;
+    },
+    'rstrip': function rstrip(str) {
+      return stringify(str).replace(/\s+$/, '');
+    },
+    'size': function size(v) {
+      return v.length;
+    },
+    'slice': function slice(v, begin, length) {
+      return v.substr(begin, length === undefined ? 1 : length);
+    },
+    'sort': function sort(v, arg) {
+      return v.sort(arg);
+    },
+    'split': function split(v, arg) {
+      return stringify(v).split(arg);
+    },
+    'strip': function strip(v) {
+      return stringify(v).trim();
+    },
+    'strip_html': function strip_html(v) {
+      return stringify(v).replace(/<\/?\s*\w+\s*\/?>/g, '');
+    },
+    'strip_newlines': function strip_newlines(v) {
+      return stringify(v).replace(/\n/g, '');
+    },
+    'times': function times(v, arg) {
+      return v * arg;
+    },
+    'truncate': function truncate(v, l, o) {
+      v = stringify(v);
+      o = o === undefined ? '...' : o;
+      l = l || 16;
+      if (v.length <= l) return v;
+      return v.substr(0, l - o.length) + o;
+    },
+    'truncatewords': function truncatewords(v, l, o) {
+      if (o === undefined) o = '...';
+      var arr = v.split(' ');
+      var ret = arr.slice(0, l).join(' ');
+      if (arr.length > l) ret += o;
+      return ret;
+    },
+    'uniq': function uniq(arr) {
+      var u = {};
+      return (arr || []).filter(function (val) {
+        if (u.hasOwnProperty(val)) {
+          return false;
+        }
+        u[val] = true;
+        return true;
+      });
+    },
+    'upcase': function upcase(str) {
+      return stringify(str).toUpperCase();
+    },
+    'url_encode': encodeURIComponent,
+    'translate': function translate() {
+      var scope = this;
+      var args = Array.from(arguments);
+      var v = args.shift();
+      var context = argsToObject(args);
+      return scope.get(LOCALE_SCOPE_KEY).then(function (scopeLocales) {
+        var locales = [];
+        if (scopeLocales && scopeLocales.length > 0) {
+          if (!Array.isArray(scopeLocales)) {
+            throw new Error('scope locales must be array; "' + (typeof scopeLocales === 'undefined' ? 'undefined' : _typeof(scopeLocales)) + '" provided');
+          }
+          locales.push.apply(locales, scopeLocales);
+        }
+        if (liquid.options.locale) {
+          // add/check last
+          locales.push(liquid.options.locale);
+        }
+        if (locales.length) {
+          for (var i = 0; i < locales.length; i++) {
+            var locale = locales[i];
+            var translation = void 0;
+            try {
+              translation = locale.translate(v);
+            } catch (err) {
+              if (err.message.indexOf('invalid translation key') > -1) {
+                continue; // not found.  try next locale
+              } else {
+                throw err;
+              }
+            }
+            var countExists = 'count' in context;
+            var notNull = null !== translation && undefined !== translation;
+            var typeIsObject = (typeof translation === 'undefined' ? 'undefined' : _typeof(translation)) === 'object';
+            if (countExists && notNull && typeIsObject) {
+              var count = context.count;
+
+              if (count === undefined) count = 0;
+              if (count === 0) {
+                translation = translation.zero || translation.other;
+              } else if (count === 1) {
+                translation = translation.one || translation.other;
+              } else if (count === 2) {
+                translation = translation.two || translation.other;
+              } else {
+                translation = translation.other;
+              }
+            }
+            return liquid.parseAndRender(translation, context);
+          }
+          // it wasn't found in any of the provided locales
+          throw new Error('invalid translation key: "' + v + '"; not found in any of the provided locales');
+        } else {
+          return '';
+        }
+      });
+    }
+  };
+  // alias
+  filters.t = filters.translate;
+  return filters;
 };
 
 function escape(str) {
@@ -203,6 +406,7 @@ function bindFixed(cb) {
 }
 
 function registerAll(liquid) {
+  var filters = createFilters(liquid);
   return _.forOwn(filters, function (func, name) {
     return liquid.registerFilter(name, func);
   });
@@ -212,31 +416,30 @@ function isValidDate(date) {
   return date instanceof Date && !isNaN(date.getTime());
 }
 
-registerAll.filters = filters;
 module.exports = registerAll;
 
-},{"./src/syntax.js":15,"./src/util/strftime.js":22,"./src/util/underscore.js":23}],2:[function(require,module,exports){
+},{"./locale.js":8,"./scope.js":13,"./syntax.js":14,"./util/args.js":32,"./util/strftime.js":39,"./util/underscore.js":40}],6:[function(require,module,exports){
 'use strict';
 
-var Scope = require('./src/scope');
-var _ = require('./src/util/underscore.js');
-var assert = require('./src/util/assert.js');
-var tokenizer = require('./src/tokenizer.js');
-var statFileAsync = require('./src/util/fs.js').statFileAsync;
-var readFileAsync = require('./src/util/fs.js').readFileAsync;
+var Scope = require('./scope');
+var _ = require('./util/underscore.js');
+var assert = require('./util/assert.js');
+var tokenizer = require('./tokenizer.js');
+var statFileAsync = require('./util/fs.js').statFileAsync;
+var readFileAsync = require('./util/fs.js').readFileAsync;
 var path = require('path');
-var url = require('./src/util/url.js');
-var Render = require('./src/render.js');
-var lexical = require('./src/lexical.js');
-var Tag = require('./src/tag.js');
-var Filter = require('./src/filter.js');
-var Parser = require('./src/parser');
-var Syntax = require('./src/syntax.js');
+var url = require('./util/url.js');
+var Render = require('./render.js');
+var lexical = require('./lexical.js');
+var Tag = require('./tag.js');
+var Filter = require('./filter.js');
+var Parser = require('./parser');
+var Syntax = require('./syntax.js');
 var tags = require('./tags');
 var filters = require('./filters');
-var Promise = require('any-promise');
-var anySeries = require('./src/util/promise.js').anySeries;
-var Errors = require('./src/util/error.js');
+var Locale = require('./locale');
+var anySeries = require('./util/promise.js').anySeries;
+var Errors = require('./util/error.js');
 
 var _engine = {
   init: function init(tag, filter, options) {
@@ -253,6 +456,9 @@ var _engine = {
     filters(this);
 
     return this;
+  },
+  loadTranslation: function loadTranslation(translation, id) {
+    this.options.locale = new Locale(translation, id);
   },
   parse: function parse(html, filepath) {
     var tokens = tokenizer.parse(html, filepath, this.options);
@@ -306,34 +512,46 @@ var _engine = {
     });
   },
   getTemplate: function getTemplate(filepath, root) {
-    return typeof XMLHttpRequest === 'undefined' ? this.getTemplateFromFile(filepath, root) : this.getTemplateFromUrl(filepath, root);
+    var _this3 = this;
+
+    if (this.options.templateProvider) {
+      return this.options.templateProvider(filepath).then(function (str) {
+        var tpl = _this3.parse(str);
+        if (_this3.options.cache) {
+          _this3.cache[filepath] = tpl;
+        }
+        return tpl;
+      });
+    } else {
+      return typeof XMLHttpRequest === 'undefined' ? this.getTemplateFromFile(filepath, root) : this.getTemplateFromUrl(filepath, root);
+    }
   },
   getTemplateFromFile: function getTemplateFromFile(filepath, root) {
-    var _this3 = this;
+    var _this4 = this;
 
     if (!path.extname(filepath)) {
       filepath += this.options.extname;
     }
     return this.lookup(filepath, root).then(function (filepath) {
-      if (_this3.options.cache) {
-        var tpl = _this3.cache[filepath];
+      if (_this4.options.cache) {
+        var tpl = _this4.cache[filepath];
         if (tpl) {
           return Promise.resolve(tpl);
         }
         return readFileAsync(filepath).then(function (str) {
-          return _this3.parse(str);
+          return _this4.parse(str);
         }).then(function (tpl) {
-          return _this3.cache[filepath] = tpl;
+          return _this4.cache[filepath] = tpl;
         });
       } else {
         return readFileAsync(filepath).then(function (str) {
-          return _this3.parse(str, filepath);
+          return _this4.parse(str, filepath);
         });
       }
     });
   },
   getTemplateFromUrl: function getTemplateFromUrl(filepath, root) {
-    var _this4 = this;
+    var _this5 = this;
 
     var fullUrl;
     if (url.valid(filepath)) {
@@ -354,9 +572,9 @@ var _engine = {
       var xhr = new XMLHttpRequest();
       xhr.onload = function () {
         if (xhr.status >= 200 && xhr.status < 300) {
-          var tpl = _this4.parse(xhr.responseText);
-          if (_this4.options.cache) {
-            _this4.cache[filepath] = tpl;
+          var tpl = _this5.parse(xhr.responseText);
+          if (_this5.options.cache) {
+            _this5.cache[filepath] = tpl;
           }
           resolve(tpl);
         } else {
@@ -397,7 +615,10 @@ function factory(options) {
     trim_value_left: false,
     greedy: true,
     strict_filters: false,
-    strict_variables: false
+    strict_variables: false,
+    templateProvider: null,
+    beforeScopeProvides: null,
+    locale: null
   }, options);
   options.root = normalizeStringArray(options.root);
 
@@ -423,246 +644,21 @@ factory.Types = {
   RenderBreakError: Errors.RenderBreakError,
   AssertionError: Errors.AssertionError
 };
+factory.Locale = Locale;
 
 module.exports = factory;
 
-},{"./filters":1,"./src/filter.js":9,"./src/lexical.js":10,"./src/parser":12,"./src/render.js":13,"./src/scope":14,"./src/syntax.js":15,"./src/tag.js":16,"./src/tokenizer.js":17,"./src/util/assert.js":18,"./src/util/error.js":19,"./src/util/fs.js":20,"./src/util/promise.js":21,"./src/util/underscore.js":23,"./src/util/url.js":24,"./tags":36,"any-promise":3,"path":7}],3:[function(require,module,exports){
+},{"./filter.js":4,"./filters":5,"./lexical.js":7,"./locale":8,"./parser":10,"./render.js":11,"./scope":13,"./syntax.js":14,"./tag.js":15,"./tags":26,"./tokenizer.js":31,"./util/assert.js":33,"./util/error.js":35,"./util/fs.js":36,"./util/promise.js":38,"./util/underscore.js":40,"./util/url.js":41,"path":2}],7:[function(require,module,exports){
 'use strict';
 
-module.exports = require('./register')().Promise;
-
-},{"./register":5}],4:[function(require,module,exports){
-"use strict";
-// global key for user preferred registration
-
-var REGISTRATION_KEY = '@@any-promise/REGISTRATION',
-
-// Prior registration (preferred or detected)
-registered = null;
-
-/**
- * Registers the given implementation.  An implementation must
- * be registered prior to any call to `require("any-promise")`,
- * typically on application load.
- *
- * If called with no arguments, will return registration in
- * following priority:
- *
- * For Node.js:
- *
- * 1. Previous registration
- * 2. global.Promise if node.js version >= 0.12
- * 3. Auto detected promise based on first sucessful require of
- *    known promise libraries. Note this is a last resort, as the
- *    loaded library is non-deterministic. node.js >= 0.12 will
- *    always use global.Promise over this priority list.
- * 4. Throws error.
- *
- * For Browser:
- *
- * 1. Previous registration
- * 2. window.Promise
- * 3. Throws error.
- *
- * Options:
- *
- * Promise: Desired Promise constructor
- * global: Boolean - Should the registration be cached in a global variable to
- * allow cross dependency/bundle registration?  (default true)
- */
-module.exports = function (root, loadImplementation) {
-  return function register(implementation, opts) {
-    implementation = implementation || null;
-    opts = opts || {};
-    // global registration unless explicitly  {global: false} in options (default true)
-    var registerGlobal = opts.global !== false;
-
-    // load any previous global registration
-    if (registered === null && registerGlobal) {
-      registered = root[REGISTRATION_KEY] || null;
-    }
-
-    if (registered !== null && implementation !== null && registered.implementation !== implementation) {
-      // Throw error if attempting to redefine implementation
-      throw new Error('any-promise already defined as "' + registered.implementation + '".  You can only register an implementation before the first ' + ' call to require("any-promise") and an implementation cannot be changed');
-    }
-
-    if (registered === null) {
-      // use provided implementation
-      if (implementation !== null && typeof opts.Promise !== 'undefined') {
-        registered = {
-          Promise: opts.Promise,
-          implementation: implementation
-        };
-      } else {
-        // require implementation if implementation is specified but not provided
-        registered = loadImplementation(implementation);
-      }
-
-      if (registerGlobal) {
-        // register preference globally in case multiple installations
-        root[REGISTRATION_KEY] = registered;
-      }
-    }
-
-    return registered;
-  };
+function EmptyVariable() {}
+EmptyVariable.prototype.toString = function () {
+  return '';
 };
-
-},{}],5:[function(require,module,exports){
-"use strict";
-
-module.exports = require('./loader')(window, loadImplementation);
-
-/**
- * Browser specific loadImplementation.  Always uses `window.Promise`
- *
- * To register a custom implementation, must register with `Promise` option.
- */
-function loadImplementation() {
-  if (typeof window.Promise === 'undefined') {
-    throw new Error("any-promise browser requires a polyfill or explicit registration" + " e.g: require('any-promise/register/bluebird')");
-  }
-  return {
-    Promise: window.Promise,
-    implementation: 'window.Promise'
-  };
-}
-
-},{"./loader":4}],6:[function(require,module,exports){
-"use strict";
-
-},{}],7:[function(require,module,exports){
-"use strict";
-
-},{}],8:[function(require,module,exports){
-"use strict";
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-// Copyright 2014 Simon Lydell
-// X11 (“MIT”) Licensed. (See LICENSE.)
-
-void function (root, factory) {
-  if (typeof define === "function" && define.amd) {
-    define(factory);
-  } else if ((typeof exports === "undefined" ? "undefined" : _typeof(exports)) === "object") {
-    module.exports = factory();
-  } else {
-    root.resolveUrl = factory();
-  }
-}(undefined, function () {
-
-  function resolveUrl() /* ...urls */{
-    var numUrls = arguments.length;
-
-    if (numUrls === 0) {
-      throw new Error("resolveUrl requires at least one argument; got none.");
-    }
-
-    var base = document.createElement("base");
-    base.href = arguments[0];
-
-    if (numUrls === 1) {
-      return base.href;
-    }
-
-    var head = document.getElementsByTagName("head")[0];
-    head.insertBefore(base, head.firstChild);
-
-    var a = document.createElement("a");
-    var resolved;
-
-    for (var index = 1; index < numUrls; index++) {
-      a.href = arguments[index];
-      resolved = a.href;
-      base.href = resolved;
-    }
-
-    head.removeChild(base);
-
-    return resolved;
-  }
-
-  return resolveUrl;
-});
-
-},{}],9:[function(require,module,exports){
-'use strict';
-
-var lexical = require('./lexical.js');
-var Syntax = require('./syntax.js');
-var assert = require('./util/assert.js');
-var _ = require('./util/underscore.js');
-
-var valueRE = new RegExp('' + lexical.value.source, 'g');
-
-module.exports = function (options) {
-  options = _.assign({}, options);
-  var filters = {};
-
-  var _filterInstance = {
-    render: function render(output, scope) {
-      var args = this.args.map(function (arg) {
-        return Syntax.evalValue(arg, scope);
-      });
-      args.unshift(output);
-      return this.filter.apply(null, args);
-    },
-    parse: function parse(str) {
-      var match = lexical.filterLine.exec(str);
-      assert(match, 'illegal filter: ' + str);
-
-      var name = match[1];
-      var argList = match[2] || '';
-      var filter = filters[name];
-      if (typeof filter !== 'function') {
-        if (options.strict_filters) {
-          throw new TypeError('undefined filter: ' + name);
-        }
-        this.name = name;
-        this.filter = function (x) {
-          return x;
-        };
-        this.args = [];
-        return this;
-      }
-
-      var args = [];
-      while (match = valueRE.exec(argList.trim())) {
-        var v = match[0];
-        var re = new RegExp(v + '\\s*:', 'g');
-        re.test(match.input) ? args.push('\'' + v + '\'') : args.push(v);
-      }
-
-      this.name = name;
-      this.filter = filter;
-      this.args = args;
-
-      return this;
-    }
-  };
-
-  function construct(str) {
-    var instance = Object.create(_filterInstance);
-    return instance.parse(str);
-  }
-
-  function register(name, filter) {
-    filters[name] = filter;
-  }
-
-  function clear() {
-    filters = {};
-  }
-
-  return {
-    construct: construct, register: register, clear: clear
-  };
+EmptyVariable.prototype.toJSON = function () {
+  return '';
 };
-
-},{"./lexical.js":10,"./syntax.js":15,"./util/assert.js":18,"./util/underscore.js":23}],10:[function(require,module,exports){
-'use strict';
+var EMPTY = new EmptyVariable();
 
 // quote related
 var singleQuoted = /'[^']*'/;
@@ -678,7 +674,7 @@ var bool = /true|false/;
 // peoperty access
 var identifier = /[\w-]+/;
 var subscript = new RegExp('\\[(?:' + quoted.source + '|[\\w-\\.]+)\\]');
-var literal = new RegExp('(?:' + quoted.source + '|' + bool.source + '|' + number.source + ')');
+var literal = new RegExp('(?:' + quoted.source + '|' + bool.source + '|' + number.source + '|nil|null|empty|blank)');
 var variable = new RegExp(identifier.source + '(?:\\.' + identifier.source + '|' + subscript.source + ')*');
 
 // range related
@@ -732,22 +728,34 @@ function matchValue(str) {
 }
 
 function parseLiteral(str) {
+  if (['nil', 'null'].indexOf(str) > -1) {
+    // console.log('parseLiteral; nil', str);
+    return null;
+  }
+  if (['empty', 'blank'].indexOf(str) > -1) {
+    // console.log('parseLiteral; empty', str);
+    return EMPTY;
+  }
   var res = str.match(numberLine);
   if (res) {
+    // console.log('parseLiteral; number', str);
     return Number(str);
   }
   res = str.match(boolLine);
   if (res) {
+    // console.log('parseLiteral; bool', str);
     return str.toLowerCase() === 'true';
   }
   res = str.match(quotedLine);
   if (res) {
+    // console.log('parseLiteral; quoted', str);
     return str.slice(1, -1);
   }
   throw new TypeError('cannot parse \'' + str + '\' as literal');
 }
 
 module.exports = {
+  EMPTY: EMPTY,
   quoted: quoted,
   number: number,
   bool: bool,
@@ -777,44 +785,125 @@ module.exports = {
   isInteger: isInteger
 };
 
-},{}],11:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
-module.exports = function (isTruthy) {
-  return {
-    '==': function _(l, r) {
-      return l === r;
-    },
-    '!=': function _(l, r) {
-      return l !== r;
-    },
-    '>': function _(l, r) {
-      return l !== null && r !== null && l > r;
-    },
-    '<': function _(l, r) {
-      return l !== null && r !== null && l < r;
-    },
-    '>=': function _(l, r) {
-      return l !== null && r !== null && l >= r;
-    },
-    '<=': function _(l, r) {
-      return l !== null && r !== null && l <= r;
-    },
-    'contains': function contains(l, r) {
-      if (!l) return false;
-      if (typeof l.indexOf !== 'function') return false;
-      return l.indexOf(r) > -1;
-    },
-    'and': function and(l, r) {
-      return isTruthy(l) && isTruthy(r);
-    },
-    'or': function or(l, r) {
-      return isTruthy(l) || isTruthy(r);
+var splitPath = require('./util/object-path.js').splitPath;
+
+function Locale(translation, id) {
+  this.translation = translation;
+  this.id = id;
+}
+
+Locale.prototype.splitPath = function (str) {
+  return splitPath(str);
+};
+
+Locale.prototype.translate = function (str) {
+  var tokens = this.splitPath(str);
+  return tokens.reduce(function (value, currentValue) {
+    if (currentValue in value) {
+      return value[currentValue];
+    } else {
+      throw new Error('invalid translation key: "' + str + '"');
     }
+  }, this.translation);
+};
+
+// some implementations of liquid add higher level logic to filters e.g. shopify's section->schema->locale
+// the only way to be able to support that, is to allow locales to be provided in the scope.
+// this is a common key for accessing locales set by tags.  these locales will be detected
+// by filters.translate and checked first before looking at options.locale
+Locale.LOCALE_SCOPE_KEY = '_liquid_locale';
+
+module.exports = Locale;
+
+},{"./util/object-path.js":37}],9:[function(require,module,exports){
+'use strict';
+
+var SafeObject = require('./safe-object.js');
+
+var isNullOrUndefined = function isNullOrUndefined(value) {
+  return null === value || undefined === value;
+};
+
+var comparingEmpty = function comparingEmpty(EMPTY) {
+  for (var _len = arguments.length, vars = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+    vars[_key - 1] = arguments[_key];
+  }
+
+  return !!vars.find(function (v) {
+    return v === EMPTY;
+  });
+};
+
+var createOperator = function createOperator(EMPTY, handler) {
+  return function (l, r) {
+    // HACK: if comparing against EMPTY const we'll stringify first 
+    //       because both [] == empty and '' == empty, but i don't think
+    //       {} == empty.  since [].toString() is converted to '' this works
+    // NOTE: in liquid, you can do {% if Product == Product %} but in js you can't.  
+    //       any object requiring that kind of comparison should extend SafeObject
+    //       and provide a comparison id that can uniquely identify that object
+    if (l instanceof SafeObject) {
+      l = l[SafeObject.COMPARISON_KEY];
+    }
+    if (r instanceof SafeObject) {
+      r = r[SafeObject.COMPARISON_KEY];
+    }
+    if (comparingEmpty(EMPTY, l, r)) {
+      // if comparing to empty, null or undefined is evaluated as an empty string
+      l = isNullOrUndefined(l) ? '' : '' + l;
+      r = isNullOrUndefined(r) ? '' : '' + r;
+    }
+    return handler(l, r);
   };
 };
 
-},{}],12:[function(require,module,exports){
+module.exports = function (isTruthy, EMPTY) {
+  var _createOperator = createOperator.bind(null, EMPTY);
+  return {
+    '==': _createOperator(function (l, r) {
+      return l === r;
+    }),
+
+    '!=': _createOperator(function (l, r) {
+      return l !== r;
+    }),
+
+    '>': _createOperator(function (l, r) {
+      return l !== null && r !== null && l > r;
+    }),
+
+    '<': _createOperator(function (l, r) {
+      return l !== null && r !== null && l < r;
+    }),
+
+    '>=': _createOperator(function (l, r) {
+      return l !== null && r !== null && l >= r;
+    }),
+
+    '<=': _createOperator(function (l, r) {
+      return l !== null && r !== null && l <= r;
+    }),
+
+    'contains': _createOperator(function (l, r) {
+      if (!l) return false;
+      if (typeof l.indexOf !== 'function') return false;
+      return l.indexOf(r) > -1;
+    }),
+
+    'and': _createOperator(function (l, r) {
+      return isTruthy(l) && isTruthy(r);
+    }),
+
+    'or': _createOperator(function (l, r) {
+      return isTruthy(l) || isTruthy(r);
+    })
+  };
+};
+
+},{"./safe-object.js":12}],10:[function(require,module,exports){
 'use strict';
 
 var lexical = require('./lexical.js');
@@ -925,11 +1014,11 @@ module.exports = function (Tag, Filter) {
   };
 };
 
-},{"./lexical.js":10,"./util/assert.js":18,"./util/error.js":19}],13:[function(require,module,exports){
+},{"./lexical.js":7,"./util/assert.js":33,"./util/error.js":35}],11:[function(require,module,exports){
 'use strict';
 
 var Syntax = require('./syntax.js');
-var Promise = require('any-promise');
+var EMPTY = require('./lexical.js').EMPTY;
 var mapSeries = require('./util/promise.js').mapSeries;
 var RenderBreakError = require('./util/error.js').RenderBreakError;
 var RenderError = require('./util/error.js').RenderError;
@@ -958,16 +1047,12 @@ var render = {
     });
 
     function renderTemplate(template) {
-      var _this2 = this;
-
       if (template.type === 'tag') {
         return this.renderTag(template, scope).then(function (partial) {
           return partial === undefined ? '' : partial;
         });
       } else if (template.type === 'value') {
-        return Promise.resolve().then(function () {
-          return _this2.evalValue(template, scope);
-        }).then(function (partial) {
+        return this.evalValue(template, scope).then(function (partial) {
           return partial === undefined ? '' : stringify(partial);
         });
       } else {
@@ -989,9 +1074,22 @@ var render = {
 
   evalValue: function evalValue(template, scope) {
     assert(scope, 'unable to evalValue: scope undefined');
-    return template.filters.reduce(function (prev, filter) {
-      return filter.render(prev, scope);
-    }, Syntax.evalExp(template.initial, scope));
+    try {
+      // console.log('template.filters', template.filters)
+      return Syntax.evalExp(template.initial, scope).then(function (initialValue) {
+        // console.log('template.filters; initialValue', initialValue);
+        return template.filters.reduce(function (promise, filter) {
+          return promise.then(function (prev) {
+            return filter.render(prev, scope).then(function (next) {
+              // console.log('evalValue', {prev,next})
+              return next;
+            });
+          });
+        }, Promise.resolve(initialValue));
+      });
+    } catch (err) {
+      return Promise.reject(err);
+    }
   }
 };
 
@@ -1001,18 +1099,61 @@ function factory() {
 }
 
 function stringify(val) {
-  if (typeof val === 'string') return val;
-  return JSON.stringify(val);
+  if (typeof val === 'string') {
+    return val;
+  } else if (null === val || undefined === val || EMPTY === val) {
+    return '';
+  } else {
+    return JSON.stringify(val);
+  }
 }
 
 module.exports = factory;
 
-},{"./syntax.js":15,"./util/assert.js":18,"./util/error.js":19,"./util/promise.js":21,"any-promise":3}],14:[function(require,module,exports){
+},{"./lexical.js":7,"./syntax.js":14,"./util/assert.js":33,"./util/error.js":35,"./util/promise.js":38}],12:[function(require,module,exports){
+'use strict';
+
+function SafeObject(comparisonId) {
+  if (undefined !== comparisonId) {
+    Object.defineProperty(this, SafeObject.COMPARISON_KEY, {
+      enumerable: false,
+      value: comparisonId
+    });
+  } else {
+    // noop. must inherit
+  }
+}
+
+SafeObject.COMPARISON_KEY = '_liquid_comparison_id';
+
+module.exports = SafeObject;
+
+},{}],13:[function(require,module,exports){
 'use strict';
 
 var _ = require('./util/underscore.js');
 var lexical = require('./lexical.js');
 var assert = require('./util/assert.js');
+var AssertionError = require('./util/error.js').AssertionError;
+var compatibility = require('./util/compatibility.js');
+
+var delimiters = ['\'', '"'];
+
+var forbidden = ['empty', 'blank', 'nil', 'null', 'undefined', 'true', 'false', ''];
+
+var isVariableValid = function isVariableValid(varName) {
+  return forbidden.indexOf((varName || '').trim().toLowerCase()) < 0;
+};
+
+var validateContextObject = function validateContextObject(ctx) {
+  if (null === ctx || undefined === ctx) return;
+  var keys = Object.keys(ctx);
+  keys.forEach(function (v) {
+    if (!isVariableValid(v)) {
+      throw new Error('invalid context variable name; "' + v + '" is forbidden');
+    }
+  });
+};
 
 var Scope = {
   getAll: function getAll() {
@@ -1022,22 +1163,42 @@ var Scope = {
     }
     return ctx;
   },
+  getFromContext: function getFromContext(str) {
+    var _this = this;
+
+    return new Promise(function (resolve, reject) {
+      _this.getPropertyByPath(_this.scopes, str).then(resolve).catch(function (err) {
+        // console.log('get -> getPropertyByPath returned err:', err.message);
+        if (!/undefined variable/.test(err.message) || _this.opts.strict_variables) {
+          // console.log('\t-> rejecting');
+          return reject(err);
+        } else {
+          // console.log('\t-> resolving undefined');
+          return resolve(undefined);
+        }
+      });
+    });
+  },
   get: function get(str) {
-    try {
-      return this.getPropertyByPath(this.scopes, str);
-    } catch (e) {
-      if (!/undefined variable/.test(e.message) || this.opts.strict_variables) {
-        throw e;
-      }
+    var _this2 = this;
+
+    if (this.opts.beforeScopeProvides) {
+      return this.opts.beforeScopeProvides(str, this).then(function () {
+        return _this2.getFromContext(str);
+      });
+    } else {
+      return this.getFromContext(str);
     }
   },
   set: function set(k, v) {
+    if (!isVariableValid(k)) throw new Error('invalid variable name; "' + v + '" is forbidden');
     var scope = this.findScopeFor(k);
     setPropertyByPath(scope, k, v);
     return this;
   },
   push: function push(ctx) {
     assert(ctx, 'trying to push ' + ctx + ' into scopes');
+    validateContextObject(ctx);
     return this.scopes.push(ctx);
   },
   pop: function pop() {
@@ -1055,6 +1216,7 @@ var Scope = {
   },
   unshift: function unshift(ctx) {
     assert(ctx, 'trying to push ' + ctx + ' into scopes');
+    validateContextObject(ctx);
     return this.scopes.unshift(ctx);
   },
   shift: function shift() {
@@ -1062,18 +1224,18 @@ var Scope = {
   },
 
   getPropertyByPath: function getPropertyByPath(scopes, path) {
-    var paths = this.propertyAccessSeq(path + '');
-    if (!paths.length) {
-      throw new TypeError('undefined variable: ' + path);
-    }
-    var key = paths.shift();
-    var value = getValueFromScopes(key, scopes);
-    return paths.reduce(function (value, key) {
-      if (_.isNil(value)) {
-        throw new TypeError('undefined variable: ' + key);
+    return this.propertyAccessSeq(path + '').then(function (paths) {
+      if (!paths.length) {
+        throw new TypeError('undefined variable: "' + path + '"');
       }
-      return getValueFromParent(key, value);
-    }, value);
+      var key = paths.shift();
+      var value = getValueFromScopes(key, scopes);
+      return paths.reduce(function (value, key) {
+        return value.then(function (value) {
+          return getValueFromParent(key, value);
+        });
+      }, Promise.resolve(value));
+    });
   },
 
   /*
@@ -1085,54 +1247,63 @@ var Scope = {
    * accessSeq("foo[bar.coo]")    // ['foo', 'bar'], for bar.coo == 'bar'
    */
   propertyAccessSeq: function propertyAccessSeq(str) {
-    var seq = [];
-    var name = '';
-    var j;
-    var i = 0;
-    while (i < str.length) {
-      switch (str[i]) {
+    // log = console.log.bind(console, `"${str}"`);
+    var tokenProviders = [];
+    var strLen = str.length;
+    for (var cursor = 0; cursor < strLen;) {
+      // log('[loop]', str[cursor]);
+      switch (str[cursor]) {
         case '[':
-          push();
-
-          var delemiter = str[i + 1];
-          if (/['"]/.test(delemiter)) {
-            // foo["bar"]
-            j = str.indexOf(delemiter, i + 2);
-            assert(j !== -1, 'unbalanced ' + delemiter + ': ' + str);
-            name = str.slice(i + 2, j);
-            push();
-            i = j + 2;
-          } else {
-            // foo[bar.coo]
-            j = matchRightBracket(str, i + 1);
-            assert(j !== -1, 'unbalanced []: ' + str);
-            name = str.slice(i + 1, j);
-            if (!lexical.isInteger(name)) {
-              // foo[bar] vs. foo[1]
-              name = this.get(name);
+          var delimiter = str[cursor + 1];
+          if (delimiters.indexOf(delimiter) > -1) {
+            // access by quoted name: foo["bar"]
+            var nameEndIndex = str.indexOf(delimiter, cursor + 2);
+            if (nameEndIndex < 0) {
+              return Promise.reject(new AssertionError('unbalanced ' + delimiter + ': "' + str + '"'));
             }
-            push();
-            i = j + 1;
+            var nameToken = str.slice(cursor + 2, nameEndIndex);
+            tokenProviders.push(Promise.resolve(nameToken));
+            cursor = nameEndIndex + 2; // the closing " and ]
+            // log('BRACKET w/delimiter',nameEndIndex, nameToken);
+          } else {
+            // access by variable: foo[bar.coo]
+            var variableEndIndex = matchRightBracket(str, cursor + 1);
+            if (variableEndIndex < 0) {
+              return Promise.reject(new AssertionError('unbalanced []: "' + str + '"'));
+            }
+            var variableToken = str.slice(cursor + 1, variableEndIndex);
+            if (lexical.isInteger(variableToken)) {
+              // foo[1]
+              // log('BRACKET; number', variableToken);
+              tokenProviders.push(Promise.resolve(variableToken));
+            } else {
+              // log('BRACKET; name', variableToken);
+              tokenProviders.push(this.get(variableToken));
+            }
+            cursor = variableEndIndex + 1;
           }
           break;
         case '.':
-          // foo.bar, foo[0].bar
-          push();
-          i++;
+          // separator: foo.bar, foo[0].bar
+          cursor++;
+          // log('DOT');
           break;
         default:
-          // foo.bar
-          name += str[i];
-          i++;
+          // access by unquoted name: foo.bar
+          var nextBracketIndex = str.indexOf('[', cursor);
+          var nextDotIndex = str.indexOf('.', cursor);
+          var foundIndexes = [strLen, nextBracketIndex, nextDotIndex].filter(function (index) {
+            return index > -1;
+          });
+          var nextSeparator = Math.min.apply(Math, foundIndexes);
+          var unquotedNameToken = str.slice(cursor, nextSeparator);
+          // log('DEFAULT', {nextBracketIndex,nextDotIndex,nextSeparator,unquotedNameToken});
+          tokenProviders.push(Promise.resolve(unquotedNameToken));
+          cursor = nextSeparator;
+          break;
       }
     }
-    push();
-    return seq;
-
-    function push() {
-      if (name.length) seq.push(name);
-      name = '';
-    }
+    return Promise.all(tokenProviders);
   }
 };
 
@@ -1157,7 +1328,18 @@ function setPropertyByPath(obj, path, val) {
 }
 
 function getValueFromParent(key, value) {
-  return key === 'size' && (_.isArray(value) || _.isString(value)) ? value.length : value[key];
+  if ('size' === key) {
+    return compatibility.compatSize(value);
+  } else if ('first' === key) {
+    return compatibility.compatFirst(value);
+  } else if ('last' === key) {
+    return compatibility.compatLast(value);
+  } else {
+    if (_.isNil(value)) {
+      throw new TypeError('undefined variable: "' + key + '"');
+    }
+    return value[key];
+  }
 }
 
 function getValueFromScopes(key, scopes) {
@@ -1167,7 +1349,7 @@ function getValueFromScopes(key, scopes) {
       return scope[key];
     }
   }
-  throw new TypeError('undefined variable: ' + key);
+  throw new TypeError('undefined variable: "' + key + '"');
 }
 
 function matchRightBracket(str, begin) {
@@ -1186,6 +1368,14 @@ function matchRightBracket(str, begin) {
   return -1;
 }
 
+exports.forbidden = forbidden;
+
+exports.isVariableValid = isVariableValid;
+
+exports.validateContextObject = validateContextObject;
+
+exports.setPropertyByPath = setPropertyByPath;
+
 exports.factory = function (ctx, opts) {
   var defaultOptions = {
     dynamicPartials: true,
@@ -1196,16 +1386,17 @@ exports.factory = function (ctx, opts) {
   };
   var scope = Object.create(Scope);
   scope.opts = _.assign(defaultOptions, opts);
+  validateContextObject(ctx);
   scope.scopes = [ctx || {}];
   return scope;
 };
 
-},{"./lexical.js":10,"./util/assert.js":18,"./util/underscore.js":23}],15:[function(require,module,exports){
+},{"./lexical.js":7,"./util/assert.js":33,"./util/compatibility.js":34,"./util/error.js":35,"./util/underscore.js":40}],14:[function(require,module,exports){
 'use strict';
 
-var operators = require('./operators.js')(isTruthy);
 var lexical = require('./lexical.js');
-var assert = require('../src/util/assert.js');
+var operators = require('./operators.js')(isTruthy, lexical.EMPTY);
+var assert = require('./util/assert.js');
 
 function evalExp(exp, scope) {
   assert(scope, 'unable to evalExp: scope undefined');
@@ -1215,34 +1406,43 @@ function evalExp(exp, scope) {
     var operatorRE = operatorREs[i];
     var expRE = new RegExp('^(' + lexical.quoteBalanced.source + ')(' + operatorRE.source + ')(' + lexical.quoteBalanced.source + ')$');
     if (match = exp.match(expRE)) {
-      var l = evalExp(match[1], scope);
-      var op = operators[match[2].trim()];
-      var r = evalExp(match[3], scope);
-      return op(l, r);
+      return Promise.all([evalExp(match[1], scope), evalExp(match[3], scope)]).then(function (results) {
+        var l = results[0];
+        var r = results[1];
+        var op = operators[match[2].trim()];
+        // console.log('evalExp', l, op, r);
+        return op(l, r);
+      });
     }
   }
 
   if (match = exp.match(lexical.rangeLine)) {
-    var low = evalValue(match[1], scope);
-    var high = evalValue(match[2], scope);
-    var range = [];
-    for (var j = low; j <= high; j++) {
-      range.push(j);
-    }
-    return range;
+    return Promise.all([evalValue(match[1], scope), evalValue(match[2], scope)]).then(function (results) {
+      var low = results[0];
+      var high = results[1];
+      var range = [];
+      for (var j = low; j <= high; j++) {
+        range.push(j);
+      }
+      return range;
+    });
   }
-
+  // need to support if this.boolean? is true
+  if (exp.substr(-1) === '?') {
+    exp = exp.substr(0, exp.length - 1);
+  }
   return evalValue(exp, scope);
 }
 
 function evalValue(str, scope) {
   str = str && str.trim();
-  if (!str) return undefined;
-
+  if (!str) return Promise.resolve(undefined);
   if (lexical.isLiteral(str)) {
-    return lexical.parseLiteral(str);
+    // console.log('evalValue isLiteral', str);
+    return Promise.resolve(lexical.parseLiteral(str));
   }
   if (lexical.isVariable(str)) {
+    // console.log('evalValue isVariable', str, scope);
     return scope.get(str);
   }
   throw new TypeError('cannot eval \'' + str + '\' as value');
@@ -1253,31 +1453,42 @@ function isTruthy(val) {
 }
 
 function isFalsy(val) {
-  return val === false || undefined === val || val === null;
+  return val === false || undefined === val || val === null || lexical.EMPTY === val || typeof val === 'string' && val.length === 0;
 }
 
 module.exports = {
-  evalExp: evalExp, evalValue: evalValue, isTruthy: isTruthy, isFalsy: isFalsy
+  evalExp: evalExp,
+  evalValue: evalValue,
+  isTruthy: isTruthy,
+  isFalsy: isFalsy
 };
 
-},{"../src/util/assert.js":18,"./lexical.js":10,"./operators.js":11}],16:[function(require,module,exports){
+},{"./lexical.js":7,"./operators.js":9,"./util/assert.js":33}],15:[function(require,module,exports){
 'use strict';
 
 var lexical = require('./lexical.js');
-var Promise = require('any-promise');
 var Syntax = require('./syntax.js');
 var assert = require('./util/assert.js');
 
 function hash(markup, scope) {
+  var keys = [];
+  var vals = [];
   var obj = {};
   var match;
   lexical.hashCapture.lastIndex = 0;
   while (match = lexical.hashCapture.exec(markup)) {
     var k = match[1];
     var v = match[2];
-    obj[k] = Syntax.evalValue(v, scope);
+    keys.push(k);
+    vals.push(Syntax.evalValue(v, scope));
   }
-  return obj;
+  return Promise.all(vals).then(function (results) {
+    results.forEach(function (v, i) {
+      var k = keys[i];
+      obj[k] = v;
+    });
+    return obj;
+  });
 }
 
 module.exports = function () {
@@ -1285,12 +1496,13 @@ module.exports = function () {
 
   var _tagInstance = {
     render: function render(scope) {
-      var obj = hash(this.token.args, scope);
-      var impl = this.tagImpl;
-      if (typeof impl.render !== 'function') {
-        return Promise.resolve('');
-      }
-      return Promise.resolve().then(function () {
+      var _this = this;
+
+      return hash(this.token.args, scope).then(function (obj) {
+        var impl = _this.tagImpl;
+        if (typeof impl.render !== 'function') {
+          return Promise.resolve('');
+        }
         return impl.render(scope, obj);
       });
     },
@@ -1329,7 +1541,746 @@ module.exports = function () {
   };
 };
 
-},{"./lexical.js":10,"./syntax.js":15,"./util/assert.js":18,"any-promise":3}],17:[function(require,module,exports){
+},{"./lexical.js":7,"./syntax.js":14,"./util/assert.js":33}],16:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var re = new RegExp('(' + lexical.identifier.source + ')\\s*=(.*)');
+var assert = require('../util/assert.js');
+
+module.exports = function (liquid) {
+  liquid.registerTag('assign', {
+    parse: function parse(token) {
+      var match = token.args.match(re);
+      assert(match, 'illegal token ' + token.raw);
+      this.key = match[1];
+      this.value = match[2];
+    },
+    render: function render(scope) {
+      var _this = this;
+
+      return liquid.evalValue(this.value, scope).then(function (value) {
+        scope.set(_this.key, value);
+        return '';
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],17:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var re = new RegExp('(' + lexical.identifier.source + ')');
+var assert = require('../util/assert.js');
+
+module.exports = function (liquid) {
+  liquid.registerTag('capture', {
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      var match = tagToken.args.match(re);
+      assert(match, tagToken.args + ' not valid identifier');
+
+      this.variable = match[1];
+      this.templates = [];
+
+      var stream = liquid.parser.parseStream(remainTokens);
+      stream.on('tag:endcapture', function (token) {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return _this.templates.push(tpl);
+      }).on('end', function (x) {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+      stream.start();
+    },
+    render: function render(scope, hash) {
+      var _this2 = this;
+
+      return liquid.renderer.renderTemplates(this.templates, scope).then(function (html) {
+        scope.set(_this2.variable, html);
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],18:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var firstSeries = require('../util/promise.js').firstSeries;
+
+var evaluateBranch = function evaluateBranch(val, cond) {
+  return Promise.all([val, cond]).then(function (results) {
+    return results[0] === results[1];
+  });
+};
+
+module.exports = function (liquid) {
+  liquid.registerTag('case', {
+
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      this.cond = tagToken.args;
+      this.cases = [];
+      this.elseTemplates = [];
+
+      var p = [];
+      var stream = liquid.parser.parseStream(remainTokens).on('tag:when', function (token) {
+        _this.cases.push({
+          val: token.args,
+          templates: p = []
+        });
+      }).on('tag:else', function () {
+        return p = _this.elseTemplates;
+      }).on('tag:endcase', function (token) {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return p.push(tpl);
+      }).on('end', function (x) {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+
+      stream.start();
+    },
+
+    render: function render(scope, hash) {
+      var _this2 = this;
+
+      return firstSeries(this.cases, function (branch) {
+        return new Promise(function (resolve, reject) {
+          evaluateBranch(Liquid.evalExp(branch.val, scope), Liquid.evalExp(_this2.cond, scope)).then(function (found) {
+            if (found) {
+              resolve(liquid.renderer.renderTemplates(branch.templates, scope));
+            } else {
+              reject();
+            }
+          });
+        });
+      }, function () {
+        return liquid.renderer.renderTemplates(_this2.elseTemplates, scope);
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/promise.js":38}],19:[function(require,module,exports){
+'use strict';
+
+module.exports = function (liquid) {
+  liquid.registerTag('comment', {
+    parse: function parse(tagToken, remainTokens) {
+      var stream = liquid.parser.parseStream(remainTokens);
+      stream.on('token', function (token) {
+        if (token.name === 'endcomment') stream.stop();
+      }).on('end', function (x) {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+      stream.start();
+    }
+  });
+};
+
+},{}],20:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var groupRE = new RegExp('^(?:(' + lexical.value.source + ')\\s*:\\s*)?(.*)$');
+var candidatesRE = new RegExp(lexical.value.source, 'g');
+var assert = require('../util/assert.js');
+
+module.exports = function (liquid) {
+  liquid.registerTag('cycle', {
+
+    parse: function parse(tagToken, remainTokens) {
+      var match = groupRE.exec(tagToken.args);
+      assert(match, 'illegal tag: ' + tagToken.raw);
+
+      this.group = match[1] || '';
+      var candidates = match[2];
+
+      this.candidates = [];
+
+      while (match = candidatesRE.exec(candidates)) {
+        this.candidates.push(match[0]);
+      }
+      assert(this.candidates.length, 'empty candidates: ' + tagToken.raw);
+    },
+
+    render: function render(scope, hash) {
+      var _this = this;
+
+      return Liquid.evalValue(this.group, scope).then(function (group) {
+        var fingerprint = 'cycle:' + group + ':' + _this.candidates.join(',');
+
+        var groups = scope.opts.groups = scope.opts.groups || {};
+        var idx = groups[fingerprint];
+
+        if (idx === undefined) {
+          idx = groups[fingerprint] = 0;
+        }
+
+        var candidate = _this.candidates[idx];
+        idx = (idx + 1) % _this.candidates.length;
+        groups[fingerprint] = idx;
+        return Liquid.evalValue(candidate, scope);
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],21:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var assert = require('../util/assert.js');
+
+module.exports = function (liquid) {
+  liquid.registerTag('decrement', {
+    parse: function parse(token) {
+      var match = token.args.match(lexical.identifier);
+      assert(match, 'illegal identifier ' + token.args);
+      this.variable = match[0];
+    },
+    render: function render(scope, hash) {
+      var _this = this;
+
+      return scope.get(this.variable).then(function (v) {
+        if (typeof v !== 'number') v = 0;
+        scope.set(_this.variable, v - 1);
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],22:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var mapSeries = require('../util/promise.js').mapSeries;
+var _ = require('../util/underscore.js');
+var RenderBreakError = Liquid.Types.RenderBreakError;
+var assert = require('../util/assert.js');
+var re = new RegExp('^(' + lexical.identifier.source + ')\\s+in\\s+' + ('(' + lexical.value.source + ')') + ('(?:\\s+' + lexical.hash.source + ')*') + '(?:\\s+(reversed))?' + ('(?:\\s+' + lexical.hash.source + ')*$'));
+
+module.exports = function (liquid) {
+  liquid.registerTag('for', {
+
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      var match = re.exec(tagToken.args);
+      assert(match, 'illegal tag: ' + tagToken.raw);
+      this.variable = match[1];
+      this.collection = match[2];
+      this.reversed = !!match[3];
+
+      this.templates = [];
+      this.elseTemplates = [];
+
+      var p;
+      var stream = liquid.parser.parseStream(remainTokens).on('start', function () {
+        return p = _this.templates;
+      }).on('tag:else', function () {
+        return p = _this.elseTemplates;
+      }).on('tag:endfor', function () {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return p.push(tpl);
+      }).on('end', function () {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+
+      stream.start();
+    },
+
+    render: function render(scope, hash) {
+      var _this2 = this;
+
+      return Liquid.evalExp(this.collection, scope).then(function (collection) {
+        collection = collection || [];
+        if (!Array.isArray(collection)) {
+          if (_.isString(collection) && collection.length > 0) {
+            collection = [collection];
+          } else if (_.isObject(collection)) {
+            collection = Object.keys(collection).map(function (key) {
+              return collection[key];
+            });
+          }
+        }
+        if (!Array.isArray(collection) || !collection.length) {
+          return liquid.renderer.renderTemplates(_this2.elseTemplates, scope);
+        }
+
+        var length = collection.length;
+        var offset = hash.offset || 0;
+        var limit = hash.limit === undefined ? collection.length : hash.limit;
+
+        collection = collection.slice(offset, offset + limit);
+        if (_this2.reversed) collection.reverse();
+
+        var contexts = collection.map(function (item, i) {
+          var ctx = {};
+          ctx[_this2.variable] = item;
+          ctx.forloop = {
+            first: i === 0,
+            index: i + 1,
+            index0: i,
+            last: i === length - 1,
+            length: length,
+            rindex: length - i,
+            rindex0: length - i - 1
+          };
+          return ctx;
+        });
+
+        var html = '';
+        return mapSeries(contexts, function (context) {
+          return Promise.resolve().then(function () {
+            return scope.push(context);
+          }).then(function () {
+            return liquid.renderer.renderTemplates(_this2.templates, scope);
+          }).then(function (partial) {
+            return html += partial;
+          }).catch(function (e) {
+            if (e instanceof RenderBreakError) {
+              html += e.resolvedHTML;
+              if (e.message === 'continue') return;
+            }
+            throw e;
+          }).then(function () {
+            return scope.pop();
+          });
+        }).catch(function (e) {
+          if (e instanceof RenderBreakError && e.message === 'break') {
+            return;
+          }
+          throw e;
+        }).then(function () {
+          return html;
+        });
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33,"../util/promise.js":38,"../util/underscore.js":40}],23:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var firstSeries = require('../util/promise.js').firstSeries;
+
+module.exports = function (liquid) {
+  liquid.registerTag('if', {
+
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      this.branches = [];
+      this.elseTemplates = [];
+
+      var p;
+      var stream = liquid.parser.parseStream(remainTokens).on('start', function () {
+        return _this.branches.push({
+          cond: tagToken.args,
+          templates: p = []
+        });
+      }).on('tag:elsif', function (token) {
+        _this.branches.push({
+          cond: token.args,
+          templates: p = []
+        });
+      }).on('tag:else', function () {
+        return p = _this.elseTemplates;
+      }).on('tag:endif', function (token) {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return p.push(tpl);
+      }).on('end', function (x) {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+
+      stream.start();
+    },
+
+    render: function render(scope, hash) {
+      var _this2 = this;
+
+      return firstSeries(this.branches, function (branch) {
+        return new Promise(function (resolve, reject) {
+          return Liquid.evalExp(branch.cond, scope).then(function (cond) {
+            if (Liquid.isTruthy(cond)) {
+              resolve(liquid.renderer.renderTemplates(branch.templates, scope));
+            } else {
+              reject();
+            }
+          });
+        });
+      }, function () {
+        return liquid.renderer.renderTemplates(_this2.elseTemplates, scope);
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/promise.js":38}],24:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var withRE = new RegExp('with\\s+(' + lexical.value.source + ')');
+var staticFileRE = /\S+/;
+var assert = require('../util/assert.js');
+
+module.exports = function (liquid) {
+  liquid.registerTag('include', {
+    parse: function parse(token) {
+      var match = staticFileRE.exec(token.args);
+      if (match) {
+        this.staticValue = match[0];
+      }
+
+      match = lexical.value.exec(token.args);
+      if (match) {
+        this.value = match[0];
+      }
+
+      match = withRE.exec(token.args);
+      if (match) {
+        this.with = match[1];
+      }
+    },
+    render: function render(scope, hash) {
+      var _this = this;
+
+      return (scope.opts.dynamicPartials ? Liquid.evalValue(this.value, scope) : Promise.resolve(this.staticValue)).then(function (filepath) {
+        assert(filepath, 'cannot include with empty filename');
+        var originBlocks = scope.opts.blocks;
+        var originBlockMode = scope.opts.blockMode;
+        scope.opts.blocks = {};
+        scope.opts.blockMode = 'output';
+
+        return (!_this.with ? Promise.resolve() : Liquid.evalValue(_this.with, scope).then(function (result) {
+          hash[filepath] = result;
+          return result;
+        })).then(function () {
+          return liquid.getTemplate(filepath, scope.opts.root).then(function (templates) {
+            scope.push(hash);
+            return liquid.renderer.renderTemplates(templates, scope);
+          }).then(function (html) {
+            scope.pop();
+            scope.opts.blocks = originBlocks;
+            scope.opts.blockMode = originBlockMode;
+            return html;
+          });
+        });
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],25:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var assert = require('../util/assert.js');
+var lexical = Liquid.lexical;
+
+module.exports = function (liquid) {
+  liquid.registerTag('increment', {
+    parse: function parse(token) {
+      var match = token.args.match(lexical.identifier);
+      assert(match, 'illegal identifier ' + token.args);
+      this.variable = match[0];
+    },
+    render: function render(scope, hash) {
+      var _this = this;
+
+      return scope.get(this.variable).then(function (v) {
+        if (typeof v !== 'number') v = 0;
+        scope.set(_this.variable, v + 1);
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],26:[function(require,module,exports){
+'use strict';
+
+module.exports = function (engine) {
+  require('./assign.js')(engine);
+  require('./capture.js')(engine);
+  require('./case.js')(engine);
+  require('./comment.js')(engine);
+  require('./cycle.js')(engine);
+  require('./decrement.js')(engine);
+  require('./for.js')(engine);
+  require('./if.js')(engine);
+  require('./include.js')(engine);
+  require('./increment.js')(engine);
+  require('./layout.js')(engine);
+  require('./raw.js')(engine);
+  require('./tablerow.js')(engine);
+  require('./unless.js')(engine);
+};
+
+},{"./assign.js":16,"./capture.js":17,"./case.js":18,"./comment.js":19,"./cycle.js":20,"./decrement.js":21,"./for.js":22,"./if.js":23,"./include.js":24,"./increment.js":25,"./layout.js":27,"./raw.js":28,"./tablerow.js":29,"./unless.js":30}],27:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var lexical = Liquid.lexical;
+var assert = require('../util/assert.js');
+var staticFileRE = /\S+/;
+
+/*
+ * blockMode:
+ * * "store": store rendered html into blocks
+ * * "output": output rendered html
+ */
+
+module.exports = function (liquid) {
+  liquid.registerTag('layout', {
+    parse: function parse(token, remainTokens) {
+      var match = staticFileRE.exec(token.args);
+      if (match) {
+        this.staticLayout = match[0];
+      }
+
+      match = lexical.value.exec(token.args);
+      if (match) {
+        this.layout = match[0];
+      }
+
+      this.tpls = liquid.parser.parse(remainTokens);
+    },
+    render: function render(scope, hash) {
+      var _this = this;
+
+      return (scope.opts.dynamicPartials ? Liquid.evalValue(this.layout, scope) : Promise.resolve(this.staticLayout)).then(function (layout) {
+        assert(layout, 'cannot apply layout with empty filename');
+
+        // render the remaining tokens immediately
+        scope.opts.blockMode = 'store';
+        return liquid.renderer.renderTemplates(_this.tpls, scope).then(function (html) {
+          if (scope.opts.blocks[''] === undefined) {
+            scope.opts.blocks[''] = html;
+          }
+          return liquid.getTemplate(layout, scope.opts.root);
+        }).then(function (templates) {
+          // push the hash
+          scope.push(hash);
+          scope.opts.blockMode = 'output';
+          return liquid.renderer.renderTemplates(templates, scope);
+        })
+        // pop the hash
+        .then(function (partial) {
+          scope.pop();
+          return partial;
+        });
+      });
+    }
+  });
+
+  liquid.registerTag('block', {
+    parse: function parse(token, remainTokens) {
+      var _this2 = this;
+
+      var match = /\w+/.exec(token.args);
+      this.block = match ? match[0] : '';
+
+      this.tpls = [];
+      var stream = liquid.parser.parseStream(remainTokens).on('tag:endblock', function () {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return _this2.tpls.push(tpl);
+      }).on('end', function () {
+        throw new Error('tag ' + token.raw + ' not closed');
+      });
+      stream.start();
+    },
+    render: function render(scope) {
+      var _this3 = this;
+
+      return Promise.resolve(scope.opts.blocks[this.block]).then(function (html) {
+        return html === undefined
+        // render default block
+        ? liquid.renderer.renderTemplates(_this3.tpls, scope)
+        // use child-defined block
+        : html;
+      }).then(function (html) {
+        if (scope.opts.blockMode === 'store') {
+          scope.opts.blocks[_this3.block] = html;
+          return '';
+        }
+        return html;
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33}],28:[function(require,module,exports){
+'use strict';
+
+module.exports = function (liquid) {
+  liquid.registerTag('raw', {
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      this.tokens = [];
+
+      var stream = liquid.parser.parseStream(remainTokens);
+      stream.on('token', function (token) {
+        if (token.name === 'endraw') stream.stop();else _this.tokens.push(token);
+      }).on('end', function (x) {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+      stream.start();
+    },
+    render: function render(scope, hash) {
+      var tokens = this.tokens.map(function (token) {
+        return token.raw;
+      }).join('');
+      return Promise.resolve(tokens);
+    }
+  });
+};
+
+},{}],29:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+var mapSeries = require('../util/promise.js').mapSeries;
+var lexical = Liquid.lexical;
+var assert = require('../util/assert.js');
+var re = new RegExp('^(' + lexical.identifier.source + ')\\s+in\\s+' + ('(' + lexical.value.source + ')') + ('(?:\\s+' + lexical.hash.source + ')*$'));
+
+module.exports = function (liquid) {
+  liquid.registerTag('tablerow', {
+
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      var match = re.exec(tagToken.args);
+      assert(match, 'illegal tag: ' + tagToken.raw);
+
+      this.variable = match[1];
+      this.collection = match[2];
+      this.templates = [];
+
+      var p;
+      var stream = liquid.parser.parseStream(remainTokens).on('start', function () {
+        return p = _this.templates;
+      }).on('tag:endtablerow', function (token) {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return p.push(tpl);
+      }).on('end', function () {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+
+      stream.start();
+    },
+
+    render: function render(scope, hash) {
+      var _this2 = this;
+
+      return Liquid.evalExp(this.collection, scope).then(function (collection) {
+        collection = collection || [];
+        var html = '<table>';
+        var offset = hash.offset || 0;
+        var limit = hash.limit === undefined ? collection.length : hash.limit;
+
+        var cols = hash.cols;
+        var row;
+        var col;
+        if (!cols) throw new Error('illegal cols: ' + cols);
+
+        // build array of arguments to pass to sequential promises...
+        collection = collection.slice(offset, offset + limit);
+        var contexts = [];
+        collection.some(function (item, i) {
+          var ctx = {};
+          ctx[_this2.variable] = item;
+          contexts.push(ctx);
+        });
+
+        return mapSeries(contexts, function (context, idx) {
+          row = Math.floor(idx / cols) + 1;
+          col = idx % cols + 1;
+          if (col === 1) {
+            if (row !== 1) {
+              html += '</tr>';
+            }
+            html += '<tr class="row' + row + '">';
+          }
+
+          html += '<td class="col' + col + '">';
+          scope.push(context);
+          return liquid.renderer.renderTemplates(_this2.templates, scope).then(function (partial) {
+            scope.pop(context);
+            html += partial;
+            html += '</td>';
+            return html;
+          });
+        }).then(function () {
+          if (row > 0) {
+            html += '</tr>';
+          }
+          html += '</table>';
+          return html;
+        });
+      });
+    }
+  });
+};
+
+},{"..":6,"../util/assert.js":33,"../util/promise.js":38}],30:[function(require,module,exports){
+'use strict';
+
+var Liquid = require('..');
+
+module.exports = function (liquid) {
+  liquid.registerTag('unless', {
+    parse: function parse(tagToken, remainTokens) {
+      var _this = this;
+
+      this.templates = [];
+      this.elseTemplates = [];
+      var p;
+      var stream = liquid.parser.parseStream(remainTokens).on('start', function (x) {
+        p = _this.templates;
+        _this.cond = tagToken.args;
+      }).on('tag:else', function () {
+        return p = _this.elseTemplates;
+      }).on('tag:endunless', function (token) {
+        return stream.stop();
+      }).on('template', function (tpl) {
+        return p.push(tpl);
+      }).on('end', function (x) {
+        throw new Error('tag ' + tagToken.raw + ' not closed');
+      });
+
+      stream.start();
+    },
+
+    render: function render(scope, hash) {
+      var _this2 = this;
+
+      return Liquid.evalExp(this.cond, scope).then(function (cond) {
+        return Liquid.isFalsy(cond) ? liquid.renderer.renderTemplates(_this2.templates, scope) : liquid.renderer.renderTemplates(_this2.elseTemplates, scope);
+      });
+    }
+  });
+};
+
+},{"..":6}],31:[function(require,module,exports){
 'use strict';
 
 var lexical = require('./lexical.js');
@@ -1339,7 +2290,7 @@ var whiteSpaceCtrl = require('./whitespace-ctrl.js');
 var assert = require('./util/assert.js');
 
 function parse(input, file, options) {
-  assert(_.isString(input), 'illegal input');
+  assert(_.isString(input), 'illegal input; "' + ('' + input) + '"');
 
   var rLiquid = /({%-?([\s\S]*?)-?%})|({{-?([\s\S]*?)-?}})/g;
   var currIndent = 0;
@@ -1422,7 +2373,20 @@ function LineNumber(html) {
 exports.parse = parse;
 exports.whiteSpaceCtrl = whiteSpaceCtrl;
 
-},{"./lexical.js":10,"./util/assert.js":18,"./util/error.js":19,"./util/underscore.js":23,"./whitespace-ctrl.js":25}],18:[function(require,module,exports){
+},{"./lexical.js":7,"./util/assert.js":33,"./util/error.js":35,"./util/underscore.js":40,"./whitespace-ctrl.js":42}],32:[function(require,module,exports){
+"use strict";
+
+module.exports.argsToObject = function (args) {
+  var obj = {};
+  for (var i = 0; i < args.length; i += 2) {
+    var key = args[i];
+    var value = args[i + 1];
+    obj[key] = value;
+  }
+  return obj;
+};
+
+},{}],33:[function(require,module,exports){
 'use strict';
 
 var AssertionError = require('./error.js').AssertionError;
@@ -1436,7 +2400,72 @@ function assert(predicate, message) {
 
 module.exports = assert;
 
-},{"./error.js":19}],19:[function(require,module,exports){
+},{"./error.js":35}],34:[function(require,module,exports){
+'use strict';
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var isNull = function isNull(value) {
+  return value === null || value === undefined;
+};
+
+module.exports.compatSize = function (result) {
+  if (Array.isArray(result) || typeof result === 'string') {
+    return result.length;
+  } else if (isNull(result)) {
+    return 0;
+  } else if ((typeof result === 'undefined' ? 'undefined' : _typeof(result)) === 'object') {
+    // objects that don't have their own property "size" defined
+    // should return key length
+    if ('size' in result) {
+      return result.size;
+    } else {
+      return Object.keys(result).length;
+    }
+  } else {
+    return result;
+  }
+};
+
+module.exports.compatFirst = function (result) {
+  if (Array.isArray(result) || typeof result === 'string') {
+    return result.length > 0 ? result[0] : null;
+  } else if (isNull(result)) {
+    return null;
+  } else if ((typeof result === 'undefined' ? 'undefined' : _typeof(result)) === 'object') {
+    if ('first' in result) {
+      return result.first;
+    } else {
+      var keys = Object.keys(result);
+      if (keys.length <= 0) return null;
+      var first = keys[0];
+      return result[first];
+    }
+  } else {
+    return result;
+  }
+};
+
+module.exports.compatLast = function (result) {
+  if (Array.isArray(result) || typeof result === 'string') {
+    return result.length > 0 ? result[result.length - 1] : null;
+  } else if (isNull(result)) {
+    return null;
+  } else if ((typeof result === 'undefined' ? 'undefined' : _typeof(result)) === 'object') {
+    if ('last' in result) {
+      return result.last;
+    } else {
+      var keys = Object.keys(result);
+      if (keys.length <= 0) return null;
+      var last = keys[keys.length - 1];
+      return result[last];
+    }
+  } else {
+    return result;
+  }
+};
+
+},{}],35:[function(require,module,exports){
 'use strict';
 
 var _ = require('./underscore.js');
@@ -1540,7 +2569,7 @@ module.exports = {
   RenderError: RenderError
 };
 
-},{"./underscore.js":23}],20:[function(require,module,exports){
+},{"./underscore.js":40}],36:[function(require,module,exports){
 'use strict';
 
 var fs = require('fs');
@@ -1566,10 +2595,94 @@ module.exports = {
   statFileAsync: statFileAsync
 };
 
-},{"fs":6}],21:[function(require,module,exports){
+},{"fs":1}],37:[function(require,module,exports){
 'use strict';
 
-var Promise = require('any-promise');
+var lexical = require('../lexical.js');
+
+var delimiters = ['\'', '"'];
+
+function matchRightBracket(str, begin) {
+  var stack = 1; // count of '[' - count of ']'
+  for (var i = begin; i < str.length; i++) {
+    if (str[i] === '[') {
+      stack++;
+    }
+    if (str[i] === ']') {
+      stack--;
+      if (stack === 0) {
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+
+function splitPath(str) {
+  var strLen = str.length;
+  var tokens = [];
+  for (var cursor = 0; cursor < strLen;) {
+    // log('[loop]', str[cursor]);
+    switch (str[cursor]) {
+      case '[':
+        var delimiter = str[cursor + 1];
+        if (delimiters.indexOf(delimiter) > -1) {
+          // access by quoted name: foo["bar"]
+          var nameEndIndex = str.indexOf(delimiter, cursor + 2);
+          if (nameEndIndex < 0) {
+            throw new AssertionError('unbalanced ' + delimiter + ': "' + str + '"');
+          }
+          var nameToken = str.slice(cursor + 2, nameEndIndex);
+          tokens.push(nameToken);
+          cursor = nameEndIndex + 2; // the closing " and ]
+          // log('BRACKET w/delimiter',nameEndIndex, nameToken);
+        } else {
+          // access by variable: foo[bar.coo]
+          var variableEndIndex = matchRightBracket(str, cursor + 1);
+          if (variableEndIndex < 0) {
+            throw new AssertionError('unbalanced []: "' + str + '"');
+          }
+          var variableToken = str.slice(cursor + 1, variableEndIndex);
+          if (lexical.isInteger(variableToken)) {
+            // foo[1]
+            // log('BRACKET; number', variableToken);
+            tokens.push(variableToken);
+          } else {
+            // log('BRACKET; name', variableToken);
+            tokens.push(this.get(variableToken));
+          }
+          cursor = variableEndIndex + 1;
+        }
+        break;
+      case '.':
+        // separator: foo.bar, foo[0].bar
+        cursor++;
+        // log('DOT');
+        break;
+      default:
+        // access by unquoted name: foo.bar
+        var nextBracketIndex = str.indexOf('[', cursor);
+        var nextDotIndex = str.indexOf('.', cursor);
+        var foundIndexes = [strLen, nextBracketIndex, nextDotIndex].filter(function (index) {
+          return index > -1;
+        });
+        var nextSeparator = Math.min.apply(Math, foundIndexes);
+        var unquotedNameToken = str.slice(cursor, nextSeparator);
+        // log('DEFAULT', {nextBracketIndex,nextDotIndex,nextSeparator,unquotedNameToken});
+        tokens.push(unquotedNameToken);
+        cursor = nextSeparator;
+        break;
+    }
+  }
+  return tokens;
+}
+
+module.exports.delimiters = delimiters;
+module.exports.splitPath = splitPath;
+module.exports.matchRightBracket = matchRightBracket;
+
+},{"../lexical.js":7}],38:[function(require,module,exports){
+'use strict';
 
 /*
  * Call functions in serial until someone resolved.
@@ -1608,10 +2721,47 @@ function mapSeries(iterable, iteratee) {
   });
 }
 
+/*
+ * Call functions in serial until someone resolved; skip rest of series
+ * @param {Array} iterable the array to iterate with.
+ * @param {Array} iteratee returns a new promise.
+ * The iteratee is invoked with three arguments: (value, index, iterable).
+ */
+function firstSeries(iterable, iteratee, fallbackFn) {
+  var winner;
+  return iterable.reduce(function (promise, item) {
+    return promise.then(function () {
+      if (winner) {
+        return Promise.resolve(winner);
+      } else {
+        return iteratee(item).then(function (found) {
+          winner = found;
+          return winner;
+        }).catch(function (err) {
+          if (err instanceof Error) {
+            throw err;
+          } else {
+            // noop. swallow promises rejected with non-errors
+          }
+        });
+      }
+    });
+  }, Promise.resolve()).then(function () {
+    if (undefined !== winner) {
+      return winner;
+    } else if (fallbackFn) {
+      return fallbackFn();
+    } else {
+      return undefined;
+    }
+  });
+}
+
 exports.anySeries = anySeries;
 exports.mapSeries = mapSeries;
+exports.firstSeries = firstSeries;
 
-},{"any-promise":3}],22:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 'use strict';
 
 var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -1805,7 +2955,7 @@ var strftime = function strftime(d, format) {
 
 module.exports = strftime;
 
-},{}],23:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -1947,7 +3097,7 @@ exports.forOwn = forOwn;
 exports.assign = assign;
 exports.uniq = uniq;
 
-},{}],24:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 'use strict';
 
 var resolve = require('resolve-url');
@@ -1974,7 +3124,7 @@ exports.resolve = function (root, path) {
   return resolve(root, path);
 };
 
-},{"resolve-url":8}],25:[function(require,module,exports){
+},{"resolve-url":3}],42:[function(require,module,exports){
 'use strict';
 
 var _ = require('./util/underscore.js');
@@ -2025,704 +3175,5 @@ function trimRight(token, greedy) {
 
 module.exports = whiteSpaceCtrl;
 
-},{"./util/underscore.js":23}],26:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var lexical = Liquid.lexical;
-var Promise = require('any-promise');
-var re = new RegExp('(' + lexical.identifier.source + ')\\s*=(.*)');
-var assert = require('../src/util/assert.js');
-
-module.exports = function (liquid) {
-  liquid.registerTag('assign', {
-    parse: function parse(token) {
-      var match = token.args.match(re);
-      assert(match, 'illegal token ' + token.raw);
-      this.key = match[1];
-      this.value = match[2];
-    },
-    render: function render(scope) {
-      scope.set(this.key, liquid.evalValue(this.value, scope));
-      return Promise.resolve('');
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18,"any-promise":3}],27:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var lexical = Liquid.lexical;
-var re = new RegExp('(' + lexical.identifier.source + ')');
-var assert = require('../src/util/assert.js');
-
-module.exports = function (liquid) {
-  liquid.registerTag('capture', {
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      var match = tagToken.args.match(re);
-      assert(match, tagToken.args + ' not valid identifier');
-
-      this.variable = match[1];
-      this.templates = [];
-
-      var stream = liquid.parser.parseStream(remainTokens);
-      stream.on('tag:endcapture', function (token) {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return _this.templates.push(tpl);
-      }).on('end', function (x) {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-      stream.start();
-    },
-    render: function render(scope, hash) {
-      var _this2 = this;
-
-      return liquid.renderer.renderTemplates(this.templates, scope).then(function (html) {
-        scope.set(_this2.variable, html);
-      });
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18}],28:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-
-module.exports = function (liquid) {
-  liquid.registerTag('case', {
-
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      this.cond = tagToken.args;
-      this.cases = [];
-      this.elseTemplates = [];
-
-      var p = [];
-      var stream = liquid.parser.parseStream(remainTokens).on('tag:when', function (token) {
-        _this.cases.push({
-          val: token.args,
-          templates: p = []
-        });
-      }).on('tag:else', function () {
-        return p = _this.elseTemplates;
-      }).on('tag:endcase', function (token) {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return p.push(tpl);
-      }).on('end', function (x) {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-
-      stream.start();
-    },
-
-    render: function render(scope, hash) {
-      for (var i = 0; i < this.cases.length; i++) {
-        var branch = this.cases[i];
-        var val = Liquid.evalExp(branch.val, scope);
-        var cond = Liquid.evalExp(this.cond, scope);
-        if (val === cond) {
-          return liquid.renderer.renderTemplates(branch.templates, scope);
-        }
-      }
-      return liquid.renderer.renderTemplates(this.elseTemplates, scope);
-    }
-  });
-};
-
-},{"..":2}],29:[function(require,module,exports){
-'use strict';
-
-module.exports = function (liquid) {
-  liquid.registerTag('comment', {
-    parse: function parse(tagToken, remainTokens) {
-      var stream = liquid.parser.parseStream(remainTokens);
-      stream.on('token', function (token) {
-        if (token.name === 'endcomment') stream.stop();
-      }).on('end', function (x) {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-      stream.start();
-    }
-  });
-};
-
-},{}],30:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var Promise = require('any-promise');
-var lexical = Liquid.lexical;
-var groupRE = new RegExp('^(?:(' + lexical.value.source + ')\\s*:\\s*)?(.*)$');
-var candidatesRE = new RegExp(lexical.value.source, 'g');
-var assert = require('../src/util/assert.js');
-
-module.exports = function (liquid) {
-      liquid.registerTag('cycle', {
-
-            parse: function parse(tagToken, remainTokens) {
-                  var match = groupRE.exec(tagToken.args);
-                  assert(match, 'illegal tag: ' + tagToken.raw);
-
-                  this.group = match[1] || '';
-                  var candidates = match[2];
-
-                  this.candidates = [];
-
-                  while (match = candidatesRE.exec(candidates)) {
-                        this.candidates.push(match[0]);
-                  }
-                  assert(this.candidates.length, 'empty candidates: ' + tagToken.raw);
-            },
-
-            render: function render(scope, hash) {
-                  var group = Liquid.evalValue(this.group, scope);
-                  var fingerprint = 'cycle:' + group + ':' + this.candidates.join(',');
-
-                  var groups = scope.opts.groups = scope.opts.groups || {};
-                  var idx = groups[fingerprint];
-
-                  if (idx === undefined) {
-                        idx = groups[fingerprint] = 0;
-                  }
-
-                  var candidate = this.candidates[idx];
-                  idx = (idx + 1) % this.candidates.length;
-                  groups[fingerprint] = idx;
-
-                  return Promise.resolve(Liquid.evalValue(candidate, scope));
-            }
-      });
-};
-
-},{"..":2,"../src/util/assert.js":18,"any-promise":3}],31:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var lexical = Liquid.lexical;
-var assert = require('../src/util/assert.js');
-
-module.exports = function (liquid) {
-  liquid.registerTag('decrement', {
-    parse: function parse(token) {
-      var match = token.args.match(lexical.identifier);
-      assert(match, 'illegal identifier ' + token.args);
-      this.variable = match[0];
-    },
-    render: function render(scope, hash) {
-      var v = scope.get(this.variable);
-      if (typeof v !== 'number') v = 0;
-      scope.set(this.variable, v - 1);
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18}],32:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var lexical = Liquid.lexical;
-var mapSeries = require('../src/util/promise.js').mapSeries;
-var _ = require('../src/util/underscore.js');
-var RenderBreakError = Liquid.Types.RenderBreakError;
-var assert = require('../src/util/assert.js');
-var re = new RegExp('^(' + lexical.identifier.source + ')\\s+in\\s+' + ('(' + lexical.value.source + ')') + ('(?:\\s+' + lexical.hash.source + ')*') + '(?:\\s+(reversed))?' + ('(?:\\s+' + lexical.hash.source + ')*$'));
-
-module.exports = function (liquid) {
-  liquid.registerTag('for', {
-
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      var match = re.exec(tagToken.args);
-      assert(match, 'illegal tag: ' + tagToken.raw);
-      this.variable = match[1];
-      this.collection = match[2];
-      this.reversed = !!match[3];
-
-      this.templates = [];
-      this.elseTemplates = [];
-
-      var p;
-      var stream = liquid.parser.parseStream(remainTokens).on('start', function () {
-        return p = _this.templates;
-      }).on('tag:else', function () {
-        return p = _this.elseTemplates;
-      }).on('tag:endfor', function () {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return p.push(tpl);
-      }).on('end', function () {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-
-      stream.start();
-    },
-
-    render: function render(scope, hash) {
-      var _this2 = this;
-
-      var collection = Liquid.evalExp(this.collection, scope);
-
-      if (!Array.isArray(collection)) {
-        if (_.isString(collection) && collection.length > 0) {
-          collection = [collection];
-        } else if (_.isObject(collection)) {
-          collection = Object.keys(collection).map(function (key) {
-            return [key, collection[key]];
-          });
-        }
-      }
-      if (!Array.isArray(collection) || !collection.length) {
-        return liquid.renderer.renderTemplates(this.elseTemplates, scope);
-      }
-
-      var length = collection.length;
-      var offset = hash.offset || 0;
-      var limit = hash.limit === undefined ? collection.length : hash.limit;
-
-      collection = collection.slice(offset, offset + limit);
-      if (this.reversed) collection.reverse();
-
-      var contexts = collection.map(function (item, i) {
-        var ctx = {};
-        ctx[_this2.variable] = item;
-        ctx.forloop = {
-          first: i === 0,
-          index: i + 1,
-          index0: i,
-          last: i === length - 1,
-          length: length,
-          rindex: length - i,
-          rindex0: length - i - 1
-        };
-        return ctx;
-      });
-
-      var html = '';
-      return mapSeries(contexts, function (context) {
-        return Promise.resolve().then(function () {
-          return scope.push(context);
-        }).then(function () {
-          return liquid.renderer.renderTemplates(_this2.templates, scope);
-        }).then(function (partial) {
-          return html += partial;
-        }).catch(function (e) {
-          if (e instanceof RenderBreakError) {
-            html += e.resolvedHTML;
-            if (e.message === 'continue') return;
-          }
-          throw e;
-        }).then(function () {
-          return scope.pop();
-        });
-      }).catch(function (e) {
-        if (e instanceof RenderBreakError && e.message === 'break') {
-          return;
-        }
-        throw e;
-      }).then(function () {
-        return html;
-      });
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18,"../src/util/promise.js":21,"../src/util/underscore.js":23}],33:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-
-module.exports = function (liquid) {
-  liquid.registerTag('if', {
-
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      this.branches = [];
-      this.elseTemplates = [];
-
-      var p;
-      var stream = liquid.parser.parseStream(remainTokens).on('start', function () {
-        return _this.branches.push({
-          cond: tagToken.args,
-          templates: p = []
-        });
-      }).on('tag:elsif', function (token) {
-        _this.branches.push({
-          cond: token.args,
-          templates: p = []
-        });
-      }).on('tag:else', function () {
-        return p = _this.elseTemplates;
-      }).on('tag:endif', function (token) {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return p.push(tpl);
-      }).on('end', function (x) {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-
-      stream.start();
-    },
-
-    render: function render(scope, hash) {
-      for (var i = 0; i < this.branches.length; i++) {
-        var branch = this.branches[i];
-        var cond = Liquid.evalExp(branch.cond, scope);
-        if (Liquid.isTruthy(cond)) {
-          return liquid.renderer.renderTemplates(branch.templates, scope);
-        }
-      }
-      return liquid.renderer.renderTemplates(this.elseTemplates, scope);
-    }
-  });
-};
-
-},{"..":2}],34:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var lexical = Liquid.lexical;
-var withRE = new RegExp('with\\s+(' + lexical.value.source + ')');
-var staticFileRE = /\S+/;
-var assert = require('../src/util/assert.js');
-
-module.exports = function (liquid) {
-  liquid.registerTag('include', {
-    parse: function parse(token) {
-      var match = staticFileRE.exec(token.args);
-      if (match) {
-        this.staticValue = match[0];
-      }
-
-      match = lexical.value.exec(token.args);
-      if (match) {
-        this.value = match[0];
-      }
-
-      match = withRE.exec(token.args);
-      if (match) {
-        this.with = match[1];
-      }
-    },
-    render: function render(scope, hash) {
-      var filepath = scope.opts.dynamicPartials ? Liquid.evalValue(this.value, scope) : this.staticValue;
-      assert(filepath, 'cannot include with empty filename');
-
-      var originBlocks = scope.opts.blocks;
-      var originBlockMode = scope.opts.blockMode;
-      scope.opts.blocks = {};
-      scope.opts.blockMode = 'output';
-
-      if (this.with) {
-        hash[filepath] = Liquid.evalValue(this.with, scope);
-      }
-      return liquid.getTemplate(filepath, scope.opts.root).then(function (templates) {
-        scope.push(hash);
-        return liquid.renderer.renderTemplates(templates, scope);
-      }).then(function (html) {
-        scope.pop();
-        scope.opts.blocks = originBlocks;
-        scope.opts.blockMode = originBlockMode;
-        return html;
-      });
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18}],35:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var assert = require('../src/util/assert.js');
-var lexical = Liquid.lexical;
-
-module.exports = function (liquid) {
-  liquid.registerTag('increment', {
-    parse: function parse(token) {
-      var match = token.args.match(lexical.identifier);
-      assert(match, 'illegal identifier ' + token.args);
-      this.variable = match[0];
-    },
-    render: function render(scope, hash) {
-      var v = scope.get(this.variable);
-      if (typeof v !== 'number') v = 0;
-      scope.set(this.variable, v + 1);
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18}],36:[function(require,module,exports){
-'use strict';
-
-module.exports = function (engine) {
-  require('./assign.js')(engine);
-  require('./capture.js')(engine);
-  require('./case.js')(engine);
-  require('./comment.js')(engine);
-  require('./cycle.js')(engine);
-  require('./decrement.js')(engine);
-  require('./for.js')(engine);
-  require('./if.js')(engine);
-  require('./include.js')(engine);
-  require('./increment.js')(engine);
-  require('./layout.js')(engine);
-  require('./raw.js')(engine);
-  require('./tablerow.js')(engine);
-  require('./unless.js')(engine);
-};
-
-},{"./assign.js":26,"./capture.js":27,"./case.js":28,"./comment.js":29,"./cycle.js":30,"./decrement.js":31,"./for.js":32,"./if.js":33,"./include.js":34,"./increment.js":35,"./layout.js":37,"./raw.js":38,"./tablerow.js":39,"./unless.js":40}],37:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var Promise = require('any-promise');
-var lexical = Liquid.lexical;
-var assert = require('../src/util/assert.js');
-var staticFileRE = /\S+/;
-
-/*
- * blockMode:
- * * "store": store rendered html into blocks
- * * "output": output rendered html
- */
-
-module.exports = function (liquid) {
-  liquid.registerTag('layout', {
-    parse: function parse(token, remainTokens) {
-      var match = staticFileRE.exec(token.args);
-      if (match) {
-        this.staticLayout = match[0];
-      }
-
-      match = lexical.value.exec(token.args);
-      if (match) {
-        this.layout = match[0];
-      }
-
-      this.tpls = liquid.parser.parse(remainTokens);
-    },
-    render: function render(scope, hash) {
-      var layout = scope.opts.dynamicPartials ? Liquid.evalValue(this.layout, scope) : this.staticLayout;
-      assert(layout, 'cannot apply layout with empty filename');
-
-      // render the remaining tokens immediately
-      scope.opts.blockMode = 'store';
-      return liquid.renderer.renderTemplates(this.tpls, scope).then(function (html) {
-        if (scope.opts.blocks[''] === undefined) {
-          scope.opts.blocks[''] = html;
-        }
-        return liquid.getTemplate(layout, scope.opts.root);
-      }).then(function (templates) {
-        // push the hash
-        scope.push(hash);
-        scope.opts.blockMode = 'output';
-        return liquid.renderer.renderTemplates(templates, scope);
-      })
-      // pop the hash
-      .then(function (partial) {
-        scope.pop();
-        return partial;
-      });
-    }
-  });
-
-  liquid.registerTag('block', {
-    parse: function parse(token, remainTokens) {
-      var _this = this;
-
-      var match = /\w+/.exec(token.args);
-      this.block = match ? match[0] : '';
-
-      this.tpls = [];
-      var stream = liquid.parser.parseStream(remainTokens).on('tag:endblock', function () {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return _this.tpls.push(tpl);
-      }).on('end', function () {
-        throw new Error('tag ' + token.raw + ' not closed');
-      });
-      stream.start();
-    },
-    render: function render(scope) {
-      var _this2 = this;
-
-      return Promise.resolve(scope.opts.blocks[this.block]).then(function (html) {
-        return html === undefined
-        // render default block
-        ? liquid.renderer.renderTemplates(_this2.tpls, scope)
-        // use child-defined block
-        : html;
-      }).then(function (html) {
-        if (scope.opts.blockMode === 'store') {
-          scope.opts.blocks[_this2.block] = html;
-          return '';
-        }
-        return html;
-      });
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18,"any-promise":3}],38:[function(require,module,exports){
-'use strict';
-
-var Promise = require('any-promise');
-
-module.exports = function (liquid) {
-  liquid.registerTag('raw', {
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      this.tokens = [];
-
-      var stream = liquid.parser.parseStream(remainTokens);
-      stream.on('token', function (token) {
-        if (token.name === 'endraw') stream.stop();else _this.tokens.push(token);
-      }).on('end', function (x) {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-      stream.start();
-    },
-    render: function render(scope, hash) {
-      var tokens = this.tokens.map(function (token) {
-        return token.raw;
-      }).join('');
-      return Promise.resolve(tokens);
-    }
-  });
-};
-
-},{"any-promise":3}],39:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-var mapSeries = require('../src/util/promise.js').mapSeries;
-var lexical = Liquid.lexical;
-var assert = require('../src/util/assert.js');
-var re = new RegExp('^(' + lexical.identifier.source + ')\\s+in\\s+' + ('(' + lexical.value.source + ')') + ('(?:\\s+' + lexical.hash.source + ')*$'));
-
-module.exports = function (liquid) {
-  liquid.registerTag('tablerow', {
-
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      var match = re.exec(tagToken.args);
-      assert(match, 'illegal tag: ' + tagToken.raw);
-
-      this.variable = match[1];
-      this.collection = match[2];
-      this.templates = [];
-
-      var p;
-      var stream = liquid.parser.parseStream(remainTokens).on('start', function () {
-        return p = _this.templates;
-      }).on('tag:endtablerow', function (token) {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return p.push(tpl);
-      }).on('end', function () {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-
-      stream.start();
-    },
-
-    render: function render(scope, hash) {
-      var _this2 = this;
-
-      var collection = Liquid.evalExp(this.collection, scope) || [];
-
-      var html = '<table>';
-      var offset = hash.offset || 0;
-      var limit = hash.limit === undefined ? collection.length : hash.limit;
-
-      var cols = hash.cols;
-      var row;
-      var col;
-      if (!cols) throw new Error('illegal cols: ' + cols);
-
-      // build array of arguments to pass to sequential promises...
-      collection = collection.slice(offset, offset + limit);
-      var contexts = [];
-      collection.some(function (item, i) {
-        var ctx = {};
-        ctx[_this2.variable] = item;
-        contexts.push(ctx);
-      });
-
-      return mapSeries(contexts, function (context, idx) {
-        row = Math.floor(idx / cols) + 1;
-        col = idx % cols + 1;
-        if (col === 1) {
-          if (row !== 1) {
-            html += '</tr>';
-          }
-          html += '<tr class="row' + row + '">';
-        }
-
-        html += '<td class="col' + col + '">';
-        scope.push(context);
-        return liquid.renderer.renderTemplates(_this2.templates, scope).then(function (partial) {
-          scope.pop(context);
-          html += partial;
-          html += '</td>';
-          return html;
-        });
-      }).then(function () {
-        if (row > 0) {
-          html += '</tr>';
-        }
-        html += '</table>';
-        return html;
-      });
-    }
-  });
-};
-
-},{"..":2,"../src/util/assert.js":18,"../src/util/promise.js":21}],40:[function(require,module,exports){
-'use strict';
-
-var Liquid = require('..');
-
-module.exports = function (liquid) {
-  liquid.registerTag('unless', {
-    parse: function parse(tagToken, remainTokens) {
-      var _this = this;
-
-      this.templates = [];
-      this.elseTemplates = [];
-      var p;
-      var stream = liquid.parser.parseStream(remainTokens).on('start', function (x) {
-        p = _this.templates;
-        _this.cond = tagToken.args;
-      }).on('tag:else', function () {
-        return p = _this.elseTemplates;
-      }).on('tag:endunless', function (token) {
-        return stream.stop();
-      }).on('template', function (tpl) {
-        return p.push(tpl);
-      }).on('end', function (x) {
-        throw new Error('tag ' + tagToken.raw + ' not closed');
-      });
-
-      stream.start();
-    },
-
-    render: function render(scope, hash) {
-      var cond = Liquid.evalExp(this.cond, scope);
-      return Liquid.isFalsy(cond) ? liquid.renderer.renderTemplates(this.templates, scope) : liquid.renderer.renderTemplates(this.elseTemplates, scope);
-    }
-  });
-};
-
-},{"..":2}]},{},[2])(2)
+},{"./util/underscore.js":40}]},{},[6])(6)
 });
