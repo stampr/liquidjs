@@ -1,6 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-var Liquid = require('..');
+var Liquid = require('../src/main.js');
 var Locale = Liquid.Locale;
 
 describe('locale', function() {
@@ -18,13 +18,13 @@ describe('locale', function() {
         ]
       },
       crazy: [
-        [ 
+        [
           [],
-          [ 
-            [ 
-              [ { arrays: 'here' } ] 
-            ] 
-          ] 
+          [
+            [
+              [ { arrays: 'here' } ]
+            ]
+          ]
         ]
       ]
     });

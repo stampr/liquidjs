@@ -3,13 +3,13 @@ const sinon = require('sinon')
 const expect = chai.expect
 chai.use(require('sinon-chai'))
 
-var tag = require('../src/tag.js')()
-var Scope = require('../src/scope.js')
+var tag = require('../src/tag.js').default()
+var createScope = require('../src/scope.js').createScope
 
 describe('tag', function () {
   var scope
   before(function () {
-    scope = Scope.factory({
+    scope = createScope({
       foo: 'bar',
       arr: [2, 1],
       bar: {

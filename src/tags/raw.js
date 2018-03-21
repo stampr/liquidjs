@@ -1,5 +1,5 @@
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('raw', {
     parse: function (tagToken, remainTokens) {
       this.tokens = []

@@ -1,6 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-const Liquid = require('..')
+const Liquid = require('../src/main.js').default;
 const mock = require('mock-fs')
 chai.use(require('chai-as-promised'))
 

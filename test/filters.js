@@ -1,8 +1,9 @@
 const chai = require('chai')
 const chaiAsPromised = require('chai-as-promised')
 const expect = chai.expect
-var Liquid = require('..');
-var liquid = Liquid()
+const Liquid = require('../src/main.js').default;
+const Locale = require('../src/locale.js').default;
+const liquid = Liquid()
 chai.use(chaiAsPromised)
 
 var ctx = {
@@ -402,7 +403,7 @@ describe('filters', function () {
 
   describe('translate', function() {
     var engine = Liquid({
-      locale: new Liquid.Locale({
+      locale: new Locale({
         hello: 'world',
         scoped: 'hello {{ var1 }} foo {{ var2 }}',
         here: {

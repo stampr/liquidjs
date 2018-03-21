@@ -1,10 +1,11 @@
-const Liquid = require('../main.js');
-const lexical = Liquid.lexical
+import { evalValue } from '../syntax.js';
+import assert from '../util/assert.js';
+
+import * as lexical from '../lexical.js';
 const withRE = new RegExp(`with\\s+(${lexical.value.source})`)
 const staticFileRE = /\S+/
-const assert = require('../util/assert.js')
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('include', {
     parse: function (token) {
       var match = staticFileRE.exec(token.args)
@@ -24,7 +25,7 @@ module.exports = function (liquid) {
     },
     render: function (scope, hash) {
       return (scope.opts.dynamicPartials
-        ? Liquid.evalValue(this.value, scope)
+        ? evalValue(this.value, scope)
         : Promise.resolve(this.staticValue)).then(filepath => {
         assert(filepath, `cannot include with empty filename`)
         var originBlocks = scope.opts.blocks
@@ -32,7 +33,7 @@ module.exports = function (liquid) {
         scope.opts.blocks = {}
         scope.opts.blockMode = 'output'
 
-        return (!this.with ? Promise.resolve() : Liquid.evalValue(this.with, scope).then(result => {
+        return (!this.with ? Promise.resolve() : evalValue(this.with, scope).then(result => {
           hash[filepath] = result
           return result
         })).then(() => {

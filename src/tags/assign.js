@@ -1,9 +1,10 @@
-const Liquid = require('../main.js');
-const lexical = Liquid.lexical;
-const re = new RegExp(`(${lexical.identifier.source})\\s*=(.*)`)
-const assert = require('../util/assert.js')
+import { evalValue } from '../syntax.js';
+import assert from '../util/assert.js';
+import * as lexical from '../lexical.js';
 
-module.exports = function (liquid) {
+const re = new RegExp(`(${lexical.identifier.source})\\s*=(.*)`)
+
+export default function(liquid) {
   liquid.registerTag('assign', {
     parse: function (token) {
       var match = token.args.match(re)
@@ -12,7 +13,7 @@ module.exports = function (liquid) {
       this.value = match[2]
     },
     render: function (scope) {
-      return liquid.evalValue(this.value, scope).then(value => {
+      return evalValue(this.value, scope).then(value => {
         scope.set(this.key, value)
         return ''
       })

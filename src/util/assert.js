@@ -1,4 +1,4 @@
-const AssertionError = require('./error.js').AssertionError
+import { AssertionError } from './error.js';
 
 function assert (predicate, message) {
   if (!predicate) {
@@ -7,4 +7,4 @@ function assert (predicate, message) {
   }
 }
 
-module.exports = assert
+export default assert;

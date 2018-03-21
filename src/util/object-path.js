@@ -1,8 +1,9 @@
-const lexical = require('../lexical.js')
+import * as lexical from '../lexical.js';
+import { AssertionError } from './error.js';
 
-const delimiters = [ `'`, '"' ];
+export const delimiters = [ `'`, '"' ];
 
-function matchRightBracket (str, begin) {
+export function matchRightBracket (str, begin) {
   var stack = 1 // count of '[' - count of ']'
   for (var i = begin; i < str.length; i++) {
     if (str[i] === '[') {
@@ -18,7 +19,7 @@ function matchRightBracket (str, begin) {
   return -1
 }
 
-function splitPath(str) {
+export function splitPath(str) {
   let strLen = str.length;
   let tokens = [];
   for (let cursor=0; cursor < strLen;) {
@@ -35,7 +36,7 @@ function splitPath(str) {
           tokens.push(nameToken);
           cursor = nameEndIndex + 2; // the closing " and ]
           // log('BRACKET w/delimiter',nameEndIndex, nameToken);
-        } 
+        }
         else { // access by variable: foo[bar.coo]
           let variableEndIndex = matchRightBracket(str, cursor + 1);
           if (variableEndIndex < 0) {
@@ -71,7 +72,3 @@ function splitPath(str) {
   }
   return tokens;
 }
-
-module.exports.delimiters = delimiters;
-module.exports.splitPath = splitPath;
-module.exports.matchRightBracket = matchRightBracket;

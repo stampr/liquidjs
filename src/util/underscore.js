@@ -5,20 +5,20 @@ const toStr = Object.prototype.toString
  * @param {any} value The value to check.
  * @return {Boolean} Returns true if value is a string, else false.
  */
-function isString (value) {
+export function isString (value) {
   return value instanceof String || typeof value === 'string'
 }
 
-function isNil (value) {
+export function isNil (value) {
   return value === null || value === undefined
 }
 
-function isArray (value) {
+export function isArray (value) {
   // be compatible with IE 8
   return toStr.call(value) === '[object Array]'
 }
 
-function isError (value) {
+export function isError (value) {
   var signature = Object.prototype.toString.call(value)
   // [object XXXError]
   return signature.substr(-6, 5) === 'Error' ||
@@ -33,7 +33,7 @@ function isError (value) {
  * @param {Function} iteratee The function invoked per iteration.
  * @return {Object} Returns object.
  */
-function forOwn (object, iteratee) {
+export function forOwn (object, iteratee) {
   object = object || {}
   for (var k in object) {
     if (object.hasOwnProperty(k)) {
@@ -54,7 +54,7 @@ function forOwn (object, iteratee) {
  * @param {...Object} sources The source objects.
  * @return {Object} Returns object.
  */
-function assign (object) {
+export function assign (object) {
   object = isObject(object) ? object : {}
   var srcs = Array.prototype.slice.call(arguments, 1)
   srcs.forEach(function (src) {
@@ -63,18 +63,18 @@ function assign (object) {
   return object
 }
 
-function _assignBinary (dst, src) {
+export function _assignBinary (dst, src) {
   forOwn(src, function (v, k) {
     dst[k] = v
   })
   return dst
 }
 
-function last (arr) {
+export function last (arr) {
   return arr[arr.length - 1]
 }
 
-function uniq (arr) {
+export function uniq (arr) {
   var u = {}
   var a = []
   for (var i = 0, l = arr.length; i < l; ++i) {
@@ -93,7 +93,7 @@ function uniq (arr) {
  * @param {any} value The value to check.
  * @return {Boolean} Returns true if value is an object, else false.
  */
-function isObject (value) {
+export function isObject (value) {
   var type = typeof value
   return value != null && (type === 'object' || type === 'function')
 }
@@ -106,7 +106,7 @@ function isObject (value) {
  * Note that ranges that stop before they start are considered to be zero-length instead of
  * negative — if you'd like a negative range, use a negative step.
  */
-function range (start, stop, step) {
+export function range (start, stop, step) {
   if (arguments.length === 1) {
     stop = start
     start = 0
@@ -119,19 +119,3 @@ function range (start, stop, step) {
   }
   return arr
 }
-
-// lang
-exports.isString = isString
-exports.isObject = isObject
-exports.isArray = isArray
-exports.isNil = isNil
-exports.isError = isError
-
-// array
-exports.range = range
-exports.last = last
-
-// object
-exports.forOwn = forOwn
-exports.assign = assign
-exports.uniq = uniq

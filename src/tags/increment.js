@@ -1,8 +1,7 @@
-const Liquid = require('../main.js');
-const assert = require('../util/assert.js')
-const lexical = Liquid.lexical
+import assert from '../util/assert.js';
+import * as lexical from '../lexical.js';
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('increment', {
     parse: function (token) {
       var match = token.args.match(lexical.identifier)

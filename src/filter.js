@@ -1,11 +1,11 @@
-const lexical = require('./lexical.js')
-const Syntax = require('./syntax.js')
-const assert = require('./util/assert.js')
-const _ = require('./util/underscore.js')
+import * as lexical from './lexical.js';
+import * as Syntax from './syntax.js';
+import assert from './util/assert.js';
+import * as _ from './util/underscore.js';
 
 var valueRE = new RegExp(`${lexical.value.source}`, 'g')
 
-module.exports = function (options) {
+export default function(options) {
   options = _.assign({}, options)
   var filters = {}
 

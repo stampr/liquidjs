@@ -1,9 +1,8 @@
-const Syntax = require('./syntax.js');
-const EMPTY = require('./lexical.js').EMPTY;
-const mapSeries = require('./util/promise.js').mapSeries;
-const RenderBreakError = require('./util/error.js').RenderBreakError;
-const RenderError = require('./util/error.js').RenderError;
-const assert = require('./util/assert.js');
+import * as Syntax from './syntax.js';
+import { EMPTY } from './lexical.js';
+import { mapSeries } from './util/promise.js';
+import { RenderBreakError, RenderError } from './util/error.js';
+import assert from './util/assert.js';
 
 var render = {
 
@@ -68,11 +67,6 @@ var render = {
   },
 }
 
-function factory () {
-  var instance = Object.create(render)
-  return instance
-}
-
 function stringify (val) {
   if (typeof val === 'string') {
     return val;
@@ -85,4 +79,8 @@ function stringify (val) {
   }
 }
 
-module.exports = factory
+export default function() {
+  var instance = Object.create(render)
+  return instance
+}
+

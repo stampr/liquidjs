@@ -1,5 +1,4 @@
-const Liquid = require('../..');
-const EMPTY = require('../../src/lexical.js').EMPTY;
+const Liquid = require('../../src/main.js').default;
 const chai = require('chai')
 const expect = chai.expect
 chai.use(require('chai-as-promised'))

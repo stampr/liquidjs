@@ -3,7 +3,7 @@ const expect = chai.expect
 const mock = require('mock-fs')
 const request = require('supertest')
 const express = require('express')
-const Liquid = require('..')
+const Liquid = require('../src/main.js').default
 
 describe('engine#express()', function () {
   var app, engine

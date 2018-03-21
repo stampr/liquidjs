@@ -1,6 +1,7 @@
-const Liquid = require('../main.js');
-const lexical = Liquid.lexical
-const assert = require('../util/assert.js')
+import { evalValue } from '../syntax.js';
+import assert from '../util/assert.js';
+
+import * as lexical from '../lexical.js';
 const staticFileRE = /\S+/
 
 /*
@@ -9,7 +10,7 @@ const staticFileRE = /\S+/
  * * "output": output rendered html
  */
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('layout', {
     parse: function (token, remainTokens) {
       var match = staticFileRE.exec(token.args)
@@ -25,7 +26,7 @@ module.exports = function (liquid) {
       this.tpls = liquid.parser.parse(remainTokens)
     },
     render: function (scope, hash) {
-      return (scope.opts.dynamicPartials ? Liquid.evalValue(this.layout, scope) : Promise.resolve(this.staticLayout)).then(layout => {
+      return (scope.opts.dynamicPartials ? evalValue(this.layout, scope) : Promise.resolve(this.staticLayout)).then(layout => {
         assert(layout, `cannot apply layout with empty filename`)
 
         // render the remaining tokens immediately

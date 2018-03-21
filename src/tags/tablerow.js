@@ -1,12 +1,12 @@
-const Liquid = require('../main.js');
-const mapSeries = require('../util/promise.js').mapSeries
-const lexical = Liquid.lexical
-const assert = require('../util/assert.js')
+import { evalExp } from '../syntax.js';
+import { mapSeries } from '../util/promise.js';
+import assert from '../util/assert.js';
+import * as lexical from '../lexical.js';
 const re = new RegExp(`^(${lexical.identifier.source})\\s+in\\s+` +
   `(${lexical.value.source})` +
   `(?:\\s+${lexical.hash.source})*$`)
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('tablerow', {
 
     parse: function (tagToken, remainTokens) {
@@ -30,7 +30,7 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      return Liquid.evalExp(this.collection, scope).then(collection => {
+      return evalExp(this.collection, scope).then(collection => {
         collection = collection || []
         var html = '<table>'
         var offset = hash.offset || 0

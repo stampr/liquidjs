@@ -1,22 +1,18 @@
-const Scope = require('./scope')
-const _ = require('./util/underscore.js')
-const assert = require('./util/assert.js')
-const tokenizer = require('./tokenizer.js')
-const statFileAsync = require('./util/fs.js').statFileAsync
-const readFileAsync = require('./util/fs.js').readFileAsync
-const path = require('path')
-const url = require('./util/url.js')
-const Render = require('./render.js')
-const lexical = require('./lexical.js')
-const Tag = require('./tag.js')
-const Filter = require('./filter.js')
-const Parser = require('./parser')
-const Syntax = require('./syntax.js')
-const tags = require('./tags')
-const filters = require('./filters')
-const Locale = require('./locale')
-const anySeries = require('./util/promise.js').anySeries
-const Errors = require('./util/error.js')
+import { createScope } from './scope';
+import * as _ from './util/underscore.js';
+import assert from './util/assert.js';
+import { parse } from './tokenizer.js';
+import { statFileAsync, readFileAsync } from './util/fs.js';
+import path from 'path';
+import * as url from './util/url.js';
+import Render from './render.js';
+import Tag from './tag.js';
+import Filter from './filter.js';
+import Parser from './parser';
+import tags from './tags';
+import filters from './filters';
+import Locale from './locale';
+import { anySeries } from './util/promise.js';
 
 var _engine = {
   init: function (tag, filter, options) {
@@ -38,12 +34,12 @@ var _engine = {
     this.options.locale = new Locale(translation, id);
   },
   parse: function (html, filepath) {
-    var tokens = tokenizer.parse(html, filepath, this.options)
+    var tokens = parse(html, filepath, this.options)
     return this.parser.parse(tokens)
   },
   render: function (tpl, ctx, opts) {
     opts = _.assign({}, this.options, opts)
-    var scope = Scope.factory(ctx, opts)
+    var scope = createScope(ctx, opts)
     return this.renderer.renderTemplates(tpl, scope)
   },
   parseAndRender: function (html, ctx, opts) {
@@ -163,7 +159,13 @@ var _engine = {
   }
 }
 
-function factory (options) {
+function normalizeStringArray (value) {
+  if (Array.isArray(value)) return value
+  if (_.isString(value)) return [value]
+  return []
+}
+
+export default function(options) {
   options = _.assign({
     root: ['.'],
     cache: false,
@@ -187,23 +189,3 @@ function factory (options) {
   return engine
 }
 
-function normalizeStringArray (value) {
-  if (Array.isArray(value)) return value
-  if (_.isString(value)) return [value]
-  return []
-}
-
-factory.lexical = lexical
-factory.isTruthy = Syntax.isTruthy
-factory.isFalsy = Syntax.isFalsy
-factory.evalExp = Syntax.evalExp
-factory.evalValue = Syntax.evalValue
-factory.Types = {
-  ParseError: Errors.ParseError,
-  TokenizationEroor: Errors.TokenizationError,
-  RenderBreakError: Errors.RenderBreakError,
-  AssertionError: Errors.AssertionError
-}
-factory.Locale = Locale;
-
-module.exports = factory

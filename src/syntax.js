@@ -1,8 +1,10 @@
-const lexical = require('./lexical.js');
-const operators = require('./operators.js')(isTruthy, lexical.EMPTY);
-const assert = require('./util/assert.js');
+import * as lexical from './lexical.js';
+import createOperators from './operators.js';
+import assert from './util/assert.js';
 
-function evalExp (exp, scope) {
+export const operators = createOperators(isTruthy, lexical.EMPTY);
+
+export function evalExp (exp, scope) {
   assert(scope, 'unable to evalExp: scope undefined')
   var operatorREs = lexical.operators
   var match
@@ -45,7 +47,7 @@ function evalExp (exp, scope) {
 }
 
 
-function evalValue (str, scope) {
+export function evalValue (str, scope) {
   str = str && str.trim()
   if (!str) return Promise.resolve(undefined)
   if (lexical.isLiteral(str)) {
@@ -59,17 +61,10 @@ function evalValue (str, scope) {
   throw new TypeError(`cannot eval '${str}' as value`)
 }
 
-function isTruthy (val) {
+export function isTruthy (val) {
   return !isFalsy(val)
 }
 
-function isFalsy (val) {
+export function isFalsy (val) {
   return val === false || undefined === val || val === null || lexical.EMPTY === val || (typeof val === 'string' && val.length === 0);
-}
-
-module.exports = {
-  evalExp,  
-  evalValue, 
-  isTruthy, 
-  isFalsy,
 }

@@ -1,6 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-const Liquid = require('../..')
+const Liquid = require('../../src/main.js').default;
 chai.use(require('chai-as-promised'))
 
 describe('template provider', function () {

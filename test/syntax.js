@@ -1,7 +1,7 @@
 const chai = require('chai')
 const expect = chai.expect
 var syntax = require('../src/syntax.js')
-var Scope = require('../src/scope.js')
+var createScope = require('../src/scope.js').createScope
 var SafeObject = require('../src/safe-object.js');
 
 chai.use(require('chai-as-promised'))
@@ -14,7 +14,7 @@ describe('expression', function () {
   var scope
 
   beforeEach(function () {
-    scope = Scope.factory({
+    scope = createScope({
       size: 'hello:size',
       first: 'hello:first',
       last: 'hello:last',

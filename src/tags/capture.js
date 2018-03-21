@@ -1,9 +1,9 @@
-const Liquid = require('../main.js');
-const lexical = Liquid.lexical
-const re = new RegExp(`(${lexical.identifier.source})`)
-const assert = require('../util/assert.js')
+import assert from '../util/assert.js';
 
-module.exports = function (liquid) {
+import * as lexical from '../lexical.js';
+const re = new RegExp(`(${lexical.identifier.source})`)
+
+export default function(liquid) {
   liquid.registerTag('capture', {
     parse: function (tagToken, remainTokens) {
       var match = tagToken.args.match(re)

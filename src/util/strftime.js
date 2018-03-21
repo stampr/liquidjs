@@ -172,7 +172,7 @@ var formatCodes = {
 formatCodes.h = formatCodes.b
 formatCodes.N = formatCodes.L
 
-var strftime = function (d, format) {
+export default function(d, format) {
   var output = ''
   var remaining = format
 
@@ -196,4 +196,3 @@ var strftime = function (d, format) {
   }
 }
 
-module.exports = strftime

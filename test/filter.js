@@ -6,14 +6,14 @@ const expect = chai.expect
 chai.use(sinonChai)
 chai.use(require('chai-as-promised'))
 
-var filter = require('../src/filter.js')()
-var Scope = require('../src/scope.js')
+var filter = require('../src/filter.js').default()
+var createScope = require('../src/scope.js').createScope
 
 describe('filter', function () {
   var scope
   beforeEach(function () {
     filter.clear()
-    scope = Scope.factory()
+    scope = createScope()
   })
   it('should return default filter when not registered', function () {
     var result = filter.construct('foo')

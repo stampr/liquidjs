@@ -1,16 +1,17 @@
-const Liquid = require('../main.js');
-const lexical = Liquid.lexical
-const mapSeries = require('../util/promise.js').mapSeries
-const _ = require('../util/underscore.js')
-const RenderBreakError = Liquid.Types.RenderBreakError
-const assert = require('../util/assert.js')
+import { isTruthy, evalExp } from '../syntax.js';
+import { mapSeries } from '../util/promise.js';
+import * as _ from '../util/underscore.js';
+import assert from '../util/assert.js';
+import { RenderBreakError } from '../util/error.js';
+import * as lexical from '../lexical.js';
+
 const re = new RegExp(`^(${lexical.identifier.source})\\s+in\\s+` +
     `(${lexical.value.source})` +
     `(?:\\s+${lexical.hash.source})*` +
     `(?:\\s+(reversed))?` +
     `(?:\\s+${lexical.hash.source})*$`)
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('for', {
 
     parse: function (tagToken, remainTokens) {
@@ -37,7 +38,7 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      return Liquid.evalExp(this.collection, scope).then(collection => {
+      return evalExp(this.collection, scope).then(collection => {
         collection = collection || [];
         if (!Array.isArray(collection)) {
           if (_.isString(collection) && collection.length > 0) {

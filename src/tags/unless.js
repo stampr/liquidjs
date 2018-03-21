@@ -1,6 +1,7 @@
-const Liquid = require('../main.js');
+import { isFalsy, evalExp } from '../syntax.js';
 
-module.exports = function (liquid) {
+
+export default function(liquid) {
   liquid.registerTag('unless', {
     parse: function (tagToken, remainTokens) {
       this.templates = []
@@ -22,8 +23,8 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      return Liquid.evalExp(this.cond, scope).then(cond => {
-        return Liquid.isFalsy(cond)
+      return evalExp(this.cond, scope).then(cond => {
+        return isFalsy(cond)
           ? liquid.renderer.renderTemplates(this.templates, scope)
           : liquid.renderer.renderTemplates(this.elseTemplates, scope)
       })

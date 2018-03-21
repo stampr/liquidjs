@@ -1,6 +1,6 @@
-const lexical = require('./lexical.js')
-const Syntax = require('./syntax.js')
-const assert = require('./util/assert.js')
+import * as lexical from './lexical.js';
+import * as Syntax from './syntax.js';
+import assert from './util/assert.js';
 
 function hash (markup, scope) {
   var keys = []
@@ -23,7 +23,7 @@ function hash (markup, scope) {
   })
 }
 
-module.exports = function () {
+export default function () {
   var tagImpls = {}
 
   var _tagInstance = {

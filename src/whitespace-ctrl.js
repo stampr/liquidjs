@@ -1,22 +1,4 @@
-const _ = require('./util/underscore.js')
-
-function whiteSpaceCtrl (tokens, options) {
-  options = _.assign({ greedy: true }, options)
-  var inRaw = false
-
-  tokens.forEach((token, i) => {
-    if (shouldTrimLeft(token, inRaw, options)) {
-      trimLeft(tokens[i - 1], options.greedy)
-    }
-
-    if (token.type === 'tag' && token.name === 'raw') inRaw = true
-    if (token.type === 'tag' && token.name === 'endraw') inRaw = false
-
-    if (shouldTrimRight(token, inRaw, options)) {
-      trimRight(tokens[i + 1], options.greedy)
-    }
-  })
-}
+import * as _ from './util/underscore.js';
 
 function shouldTrimLeft (token, inRaw, options) {
   if (inRaw) return false
@@ -44,4 +26,20 @@ function trimRight (token, greedy) {
   token.value = token.value.replace(rRight, '')
 }
 
-module.exports = whiteSpaceCtrl
+export default function whiteSpaceCtrl(tokens, options) {
+  options = _.assign({ greedy: true }, options)
+  var inRaw = false
+
+  tokens.forEach((token, i) => {
+    if (shouldTrimLeft(token, inRaw, options)) {
+      trimLeft(tokens[i - 1], options.greedy)
+    }
+
+    if (token.type === 'tag' && token.name === 'raw') inRaw = true
+    if (token.type === 'tag' && token.name === 'endraw') inRaw = false
+
+    if (shouldTrimRight(token, inRaw, options)) {
+      trimRight(tokens[i + 1], options.greedy)
+    }
+  })
+}

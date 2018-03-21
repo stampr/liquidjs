@@ -1,4 +1,4 @@
-module.exports.argsToObject = function(args) {
+export function argsToObject(args) {
   let obj = {};
   for (let i=0; i < args.length; i+=2) {
     let key = args[i];
@@ -6,4 +6,4 @@ module.exports.argsToObject = function(args) {
     obj[key] = value;
   }
   return obj;
-};
+}

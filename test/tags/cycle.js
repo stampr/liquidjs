@@ -1,4 +1,4 @@
-const Liquid = require('../..')
+const Liquid = require('../../src/main.js').default;
 const chai = require('chai')
 const expect = chai.expect
 chai.use(require('chai-as-promised'))

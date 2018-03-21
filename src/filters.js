@@ -1,9 +1,10 @@
-const strftime = require('./util/strftime.js');
-const _ = require('./util/underscore.js');
-const argsToObject = require('./util/args.js').argsToObject;
-const Scope = require('./scope.js');
-const isTruthy = require('./syntax.js').isTruthy;
-const LOCALE_SCOPE_KEY = require('./locale.js').LOCALE_SCOPE_KEY;
+import strftime from './util/strftime.js';
+import * as _ from './util/underscore.js';
+import { argsToObject } from './util/args.js';
+import { isTruthy } from './syntax.js';
+import Locale from './locale.js';
+
+const LOCALE_SCOPE_KEY = Locale.LOCALE_SCOPE_KEY;
 
 var escapeMap = {
   '&': '&amp;',
@@ -202,4 +203,4 @@ function isValidDate (date) {
   return date instanceof Date && !isNaN(date.getTime())
 }
 
-module.exports = registerAll
+export default registerAll;

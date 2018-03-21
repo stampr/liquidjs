@@ -1,7 +1,7 @@
-const Liquid = require('../main.js');
-const firstSeries = require('../util/promise.js').firstSeries
+import { isTruthy, evalExp } from '../syntax.js';
+import { firstSeries } from '../util/promise.js';
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('if', {
 
     parse: function (tagToken, remainTokens) {
@@ -33,8 +33,8 @@ module.exports = function (liquid) {
     render: function (scope, hash) {
       return firstSeries(this.branches, branch => {
         return new Promise((resolve, reject) => {
-          return Liquid.evalExp(branch.cond, scope).then(cond => {
-            if (Liquid.isTruthy(cond)) {
+          return evalExp(branch.cond, scope).then(cond => {
+            if (isTruthy(cond)) {
               resolve(liquid.renderer.renderTemplates(branch.templates, scope))
             }
             else {

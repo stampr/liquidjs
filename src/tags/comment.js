@@ -1,4 +1,4 @@
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('comment', {
     parse: function (tagToken, remainTokens) {
       var stream = liquid.parser.parseStream(remainTokens)

@@ -1,6 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-const Liquid = require('..')
+const Liquid = require('../src/main.js').default;
 const liquid = new Liquid()
 chai.use(require('chai-as-promised'))
 
@@ -69,9 +69,9 @@ const cases = [
     expected: `
       <div>
         <p>
-          
+
           yes
-          
+
         </p>
       </div>
     `
@@ -88,7 +88,7 @@ const cases = [
     expected: `
       <div>
         <p>
-          
+
         </p>
       </div>
     `
@@ -281,7 +281,7 @@ const cases = [
     expected: `
       <div>
         <p>
-          
+
         </p>
       </div>
     `
@@ -428,13 +428,13 @@ const cases = [
     `,
     expected: `
       <div>
-        
+
           {%- if true -%}
             <p>
               {{- 'John' -}}
             </p>
           {%- endif -%}
-        
+
       </div>
     `
   }

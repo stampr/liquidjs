@@ -1,8 +1,8 @@
-const lexical = require('./lexical.js')
-const ParseError = require('./util/error.js').ParseError
-const assert = require('./util/assert.js')
+import * as lexical from './lexical.js';
+import { ParseError } from './util/error.js';
+import assert from './util/assert.js';
 
-module.exports = function (Tag, Filter) {
+export default function (Tag, Filter) {
   var stream = {
     init: function (tokens) {
       this.tokens = tokens

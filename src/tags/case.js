@@ -1,5 +1,5 @@
-const Liquid = require('../main.js');
-const firstSeries = require('../util/promise.js').firstSeries
+import { evalExp } from '../syntax.js';
+import { firstSeries } from '../util/promise.js';
 
 const evaluateBranch = (val, cond) => {
   return Promise.all([ val, cond ]).then(results => {
@@ -7,7 +7,7 @@ const evaluateBranch = (val, cond) => {
   })
 }
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('case', {
 
     parse: function (tagToken, remainTokens) {
@@ -36,7 +36,7 @@ module.exports = function (liquid) {
     render: function (scope, hash) {
       return firstSeries(this.cases, branch => {
         return new Promise((resolve, reject) => {
-          evaluateBranch(Liquid.evalExp(branch.val, scope), Liquid.evalExp(this.cond, scope)).then(found => {
+          evaluateBranch(evalExp(branch.val, scope), evalExp(this.cond, scope)).then(found => {
             if (found) {
               resolve(liquid.renderer.renderTemplates(branch.templates, scope))
             }

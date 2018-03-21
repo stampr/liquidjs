@@ -1,10 +1,11 @@
-const Liquid = require('../main.js');
-const lexical = Liquid.lexical
+import { evalValue } from '../syntax.js';
+import assert from '../util/assert.js';
+
+import * as lexical from '../lexical.js';
 const groupRE = new RegExp(`^(?:(${lexical.value.source})\\s*:\\s*)?(.*)$`)
 const candidatesRE = new RegExp(lexical.value.source, 'g')
-const assert = require('../util/assert.js')
 
-module.exports = function (liquid) {
+export default function(liquid) {
   liquid.registerTag('cycle', {
 
     parse: function (tagToken, remainTokens) {
@@ -23,7 +24,7 @@ module.exports = function (liquid) {
     },
 
     render: function (scope, hash) {
-      return Liquid.evalValue(this.group, scope).then(group => {
+      return evalValue(this.group, scope).then(group => {
         var fingerprint = `cycle:${group}:` + this.candidates.join(',')
 
         var groups = scope.opts.groups = scope.opts.groups || {}
@@ -36,7 +37,7 @@ module.exports = function (liquid) {
         var candidate = this.candidates[idx]
         idx = (idx + 1) % this.candidates.length
         groups[fingerprint] = idx
-        return Liquid.evalValue(candidate, scope)
+        return evalValue(candidate, scope)
       })
     }
   })

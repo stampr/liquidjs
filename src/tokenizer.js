@@ -1,10 +1,10 @@
-const lexical = require('./lexical.js')
-const TokenizationError = require('./util/error.js').TokenizationError
-const _ = require('./util/underscore.js')
-const whiteSpaceCtrl = require('./whitespace-ctrl.js')
-const assert = require('./util/assert.js')
+import * as lexical from './lexical.js';
+import { TokenizationError } from './util/error.js';
+import * as _ from './util/underscore.js';
+import whiteSpaceCtrl from './whitespace-ctrl.js';
+import assert from './util/assert.js';
 
-function parse (input, file, options) {
+export function parse (input, file, options) {
   assert(_.isString(input), `illegal input; "${'' + input}"`);
 
   var rLiquid = /({%-?([\s\S]*?)-?%})|({{-?([\s\S]*?)-?}})/g
@@ -86,6 +86,3 @@ function LineNumber (html) {
     }
   }
 }
-
-exports.parse = parse
-exports.whiteSpaceCtrl = whiteSpaceCtrl

@@ -7,17 +7,17 @@ const sinon = require('sinon')
 chai.use(sinonChai)
 chai.use(chaiAsPromised)
 
-var tag = require('../src/tag.js')()
-var Scope = require('../src/scope.js')
-var filter = require('../src/filter')()
-var Render = require('../src/render.js')
-var Template = require('../src/parser.js')(tag, filter)
+var tag = require('../src/tag.js').default()
+var createScope = require('../src/scope.js').createScope
+var filter = require('../src/filter').default()
+var Render = require('../src/render.js').default
+var Template = require('../src/parser.js').default(tag, filter)
 
 describe('render', function () {
   var scope, render
 
   beforeEach(function () {
-    scope = Scope.factory({
+    scope = createScope({
       foo: {
         bar: ['a', 2]
       },
@@ -65,7 +65,7 @@ describe('render', function () {
     })
     describe('promises', function() {
       it('should eval promise', function () {
-        let resolvedScope = Scope.factory({
+        let resolvedScope = createScope({
           promise_value_resolved: new Promise(resolve => process.nextTick(() => resolve('resolved'))),
         });
         filter.register('date', (l, r) => l + r)
@@ -74,7 +74,7 @@ describe('render', function () {
         return expect(render.evalValue(tpl, resolvedScope)).to.eventually.equal('resolvedb6')
       })
       it('should handle rejected promises', function () {
-        let rejectedScope = Scope.factory({
+        let rejectedScope = createScope({
           promise_value_rejected: new Promise((resolve, reject) => process.nextTick(() => reject(new Error('promise_value_rejected')))),
         });
         var tpl = Template.parseValue('promise_value_rejected')

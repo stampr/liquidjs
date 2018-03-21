@@ -3,7 +3,9 @@ const expect = chai.expect;
 const AssertionError = require('../src/util/error.js').AssertionError;
 chai.use(require('chai-as-promised'));
 
-var Scope = require('../src/scope.js')
+var Scope = require('../src/scope.js');
+
+const createScope = Scope.createScope;
 
 describe('scope', function () {
   var scope, ctx
@@ -21,7 +23,7 @@ describe('scope', function () {
         }))),
       }))),
     }
-    scope = Scope.factory(ctx)
+    scope = createScope(ctx)
   })
 
   describe('#isVariableValid()', function () {
@@ -32,7 +34,7 @@ describe('scope', function () {
   });
 
   describe('#validateContextObject()', function () {
-    let test = Scope.factory({});
+    let test = createScope({});
     expect(() => test.push({ ok: true })).to.not.throw();
     expect(() => test.push({ empty: true })).to.throw(/invalid context variable name/);
   });
@@ -169,7 +171,7 @@ describe('scope', function () {
   describe('strict_variables', function () {
     var scope
     beforeEach(function () {
-      scope = Scope.factory(ctx, {
+      scope = createScope(ctx, {
         strict_variables: true
       })
     })

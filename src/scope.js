@@ -1,12 +1,12 @@
-const _ = require('./util/underscore.js');
-const lexical = require('./lexical.js');
-const assert = require('./util/assert.js');
-const AssertionError = require('./util/error.js').AssertionError;
-const compatibility = require('./util/compatibility.js');
+import * as _ from './util/underscore.js';
+import * as lexical from './lexical.js';
+import assert from './util/assert.js';
+import { AssertionError } from './util/error.js';
+import * as compatibility from './util/compatibility.js';
 
-const delimiters = [ `'`, '"' ];
+export const delimiters = [ `'`, '"' ];
 
-const forbidden = [
+export const forbidden = [
   'empty',
   'blank',
   'nil',
@@ -17,11 +17,11 @@ const forbidden = [
   '',
 ];
 
-const isVariableValid = varName => {
+export function isVariableValid(varName) {
   return forbidden.indexOf((varName || '').trim().toLowerCase()) < 0;
 };
 
-const validateContextObject = ctx => {
+export function validateContextObject(ctx) {
   if (null === ctx || undefined === ctx) return;
   let keys = Object.keys(ctx);
   keys.forEach(v => {
@@ -174,7 +174,7 @@ var Scope = {
   },
 }
 
-function setPropertyByPath (obj, path, val) {
+export function setPropertyByPath(obj, path, val) {
   var paths = (path + '').replace(/\[/g, '.').replace(/\]/g, '').split('.')
   for (var i = 0; i < paths.length; i++) {
     var key = paths[i]
@@ -194,7 +194,7 @@ function setPropertyByPath (obj, path, val) {
   }
 }
 
-function getValueFromParent (key, value) {
+export function getValueFromParent (key, value) {
   if ('size' === key) {
     return compatibility.compatSize(value);
   }
@@ -212,7 +212,7 @@ function getValueFromParent (key, value) {
   }
 }
 
-function getValueFromScopes (key, scopes) {
+export function getValueFromScopes (key, scopes) {
   for (var i = scopes.length - 1; i > -1; i--) {
     var scope = scopes[i]
     if (scope.hasOwnProperty(key)) {
@@ -222,7 +222,7 @@ function getValueFromScopes (key, scopes) {
   throw new TypeError(`undefined variable: "${key}"`)
 }
 
-function matchRightBracket (str, begin) {
+export function matchRightBracket (str, begin) {
   var stack = 1 // count of '[' - count of ']'
   for (var i = begin; i < str.length; i++) {
     if (str[i] === '[') {
@@ -238,15 +238,7 @@ function matchRightBracket (str, begin) {
   return -1
 }
 
-exports.forbidden = forbidden;
-
-exports.isVariableValid = isVariableValid;
-
-exports.validateContextObject = validateContextObject;
-
-exports.setPropertyByPath = setPropertyByPath;
-
-exports.factory = function (ctx, opts) {
+export function createScope(ctx, opts) {
   var defaultOptions = {
     dynamicPartials: true,
     strict_variables: false,

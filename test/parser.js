@@ -3,9 +3,9 @@ const expect = chai.expect
 
 chai.use(require('sinon-chai'))
 
-var filter = require('../src/filter.js')()
-var tag = require('../src/tag.js')()
-var Template = require('../src/parser.js')
+var filter = require('../src/filter.js').default();
+var tag = require('../src/tag.js').default()
+var Template = require('../src/parser.js').default
 
 describe('template', function () {
   var template
