@@ -16,6 +16,7 @@ import { anySeries } from './util/promise.js';
 
 import * as Syntax from './syntax.js';
 import * as Errors from './util/error.js';
+import * as lexical from './lexical.js';
 
 import { argsToObject } from './util/args.js';
 import SafeObject from './safe-object.js';

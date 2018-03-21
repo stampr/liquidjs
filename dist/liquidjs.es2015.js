@@ -218,7 +218,9 @@ function isLiteral(str) {
   return literalLine.test(str);
 }
 
-
+function isRange(str) {
+  return rangeLine.test(str);
+}
 
 function isVariable(str) {
   return variableLine.test(str);
@@ -254,6 +256,47 @@ function parseLiteral(str) {
   }
   throw new TypeError('cannot parse \'' + str + '\' as literal');
 }
+
+var lexical = Object.freeze({
+	EMPTY: EMPTY,
+	singleQuoted: singleQuoted,
+	doubleQuoted: doubleQuoted,
+	quoted: quoted,
+	quoteBalanced: quoteBalanced,
+	integer: integer,
+	number: number,
+	bool: bool,
+	identifier: identifier,
+	subscript: subscript,
+	literal: literal,
+	variable: variable,
+	rangeLimit: rangeLimit,
+	range: range$1,
+	rangeCapture: rangeCapture,
+	value: value,
+	hash: hash,
+	hashCapture: hashCapture,
+	tagLine: tagLine,
+	literalLine: literalLine,
+	variableLine: variableLine,
+	numberLine: numberLine,
+	boolLine: boolLine,
+	quotedLine: quotedLine,
+	rangeLine: rangeLine,
+	integerLine: integerLine,
+	valueDeclaration: valueDeclaration,
+	valueList: valueList,
+	filter: filter,
+	filterCapture: filterCapture,
+	filterLine: filterLine,
+	operators: operators,
+	isInteger: isInteger,
+	isLiteral: isLiteral,
+	isRange: isRange,
+	isVariable: isVariable,
+	matchValue: matchValue,
+	parseLiteral: parseLiteral
+});
 
 function initError() {
   this.name = this.constructor.name;
@@ -2675,14 +2718,14 @@ function isValidDate(date) {
 }
 
 var _engine = {
-  init: function init(tag, filter, options) {
+  init: function init(tag, filter$$1, options) {
     if (options.cache) {
       this.cache = {};
     }
     this.options = options;
     this.tag = tag;
-    this.filter = filter;
-    this.parser = Parser(tag, filter);
+    this.filter = filter$$1;
+    this.parser = Parser(tag, filter$$1);
     this.renderer = Render();
 
     tags(this);
@@ -2727,8 +2770,8 @@ var _engine = {
     var tpl = this.parser.parseValue(str.trim());
     return this.renderer.evalValue(tpl, scope);
   },
-  registerFilter: function registerFilter(name, filter) {
-    return this.filter.register(name, filter);
+  registerFilter: function registerFilter(name, filter$$1) {
+    return this.filter.register(name, filter$$1);
   },
   registerTag: function registerTag(name, tag) {
     return this.tag.register(name, tag);
@@ -2840,9 +2883,9 @@ var _engine = {
   }
 };
 
-function normalizeStringArray(value) {
-  if (Array.isArray(value)) return value;
-  if (isString(value)) return [value];
+function normalizeStringArray(value$$1) {
+  if (Array.isArray(value$$1)) return value$$1;
+  if (isString(value$$1)) return [value$$1];
   return [];
 }
 
