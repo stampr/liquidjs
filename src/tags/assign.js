@@ -13,7 +13,7 @@ export default function(liquid) {
       this.value = match[2]
     },
     render: function (scope) {
-      return evalValue(this.value, scope).then(value => {
+      return liquid.evalValue(this.value, scope).then(value => {
         scope.set(this.key, value)
         return ''
       })
