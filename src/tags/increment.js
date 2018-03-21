@@ -1,4 +1,4 @@
-const Liquid = require('../index.js');
+const Liquid = require('../main.js');
 const assert = require('../util/assert.js')
 const lexical = Liquid.lexical
 

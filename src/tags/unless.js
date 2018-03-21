@@ -1,4 +1,4 @@
-const Liquid = require('../index.js');
+const Liquid = require('../main.js');
 
 module.exports = function (liquid) {
   liquid.registerTag('unless', {

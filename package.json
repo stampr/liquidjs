@@ -2,7 +2,7 @@
   "name": "liquidjs",
   "version": "3.1.1",
   "description": "Liquid template engine by pure JavaScript: compatible to shopify, easy to extend.",
-  "main": "./src/index.js",
+  "main": "./src/main.js",
   "scripts": {
     "lint": "eslint .",
     "test": "mocha --recursive",

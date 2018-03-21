@@ -1,4 +1,4 @@
-const Liquid = require('../index.js');
+const Liquid = require('../main.js');
 const firstSeries = require('../util/promise.js').firstSeries
 
 module.exports = function (liquid) {
