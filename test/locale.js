@@ -1,7 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-var Liquid = require('../src/main.js');
-var Locale = Liquid.Locale;
+var Locale = require('../src/locale.js').default;
 
 describe('locale', function() {
   it('should translate object paths', function() {
