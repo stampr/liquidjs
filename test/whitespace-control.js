@@ -1,6 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-const Liquid = require('../src/main.js').default;
+const Liquid = require('../src/main.js').createEngine;
 const liquid = new Liquid()
 chai.use(require('chai-as-promised'))
 

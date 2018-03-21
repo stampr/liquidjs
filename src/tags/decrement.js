@@ -1,4 +1,3 @@
-import Liquid from '../main.js';
 import assert from '../util/assert.js';
 
 import * as lexical from '../lexical.js';

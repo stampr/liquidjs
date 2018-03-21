@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
 var fs = _interopDefault(require('fs'));
@@ -349,6 +351,14 @@ function mkMessage(msg, token) {
   }
   return msg;
 }
+
+var error$1 = Object.freeze({
+	TokenizationError: TokenizationError,
+	ParseError: ParseError,
+	RenderError: RenderError,
+	RenderBreakError: RenderBreakError,
+	AssertionError: AssertionError
+});
 
 function assert(predicate, message) {
   if (!predicate) {
@@ -1039,6 +1049,13 @@ function isTruthy(val) {
 function isFalsy(val) {
   return val === false || undefined === val || val === null || EMPTY === val || typeof val === 'string' && val.length === 0;
 }
+
+var syntax = Object.freeze({
+	evalExp: evalExp,
+	evalValue: evalValue,
+	isTruthy: isTruthy,
+	isFalsy: isFalsy
+});
 
 /*
  * Call functions in serial until someone resolved.
@@ -2682,8 +2699,12 @@ var _engine = {
   loadTranslation: function loadTranslation(translation, id) {
     this.options.locale = new Locale(translation, id);
   },
-  parse: function parse$$1(html, filepath) {
+  tokenize: function tokenize(html, filepath) {
     var tokens = parse(html, filepath, this.options);
+    return tokens;
+  },
+  parse: function parse$$1(html, filepath) {
+    var tokens = this.tokenize(html, filepath);
     return this.parser.parse(tokens);
   },
   render: function render(tpl, ctx, opts) {
@@ -2708,7 +2729,7 @@ var _engine = {
       return _this2.render(templates, ctx, opts);
     });
   },
-  evalValue: function evalValue(str, scope) {
+  evalValue: function evalValue$$1(str, scope) {
     var tpl = this.parser.parseValue(str.trim());
     return this.renderer.evalValue(tpl, scope);
   },
@@ -2831,7 +2852,7 @@ function normalizeStringArray(value) {
   return [];
 }
 
-var main = function (options) {
+function createEngine(options) {
   options = assign({
     root: ['.'],
     cache: false,
@@ -2853,7 +2874,13 @@ var main = function (options) {
   var engine = Object.create(_engine);
   engine.init(Tag(), Filter(options), options);
   return engine;
-};
+}
 
-module.exports = main;
+exports.Locale = Locale;
+exports.lexical = lexical;
+exports.Syntax = syntax;
+exports.Errors = error$1;
+exports.argsToObject = argsToObject;
+exports.SafeObject = SafeObject;
+exports.createEngine = createEngine;
 //# sourceMappingURL=liquidjs.cjs.js.map

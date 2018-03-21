@@ -1,4 +1,4 @@
-const Liquid = require('../../src/main.js').default;
+const Liquid = require('../../src/main.js').createEngine;
 const mock = require('mock-fs')
 const chai = require('chai')
 const expect = chai.expect

@@ -14,6 +14,14 @@ import filters from './filters';
 import Locale from './locale';
 import { anySeries } from './util/promise.js';
 
+import * as Syntax from './syntax.js';
+import * as Errors from './util/error.js';
+
+import { argsToObject } from './util/args.js';
+import SafeObject from './safe-object.js';
+
+export { Locale, lexical, Syntax, Errors, argsToObject, SafeObject };
+
 var _engine = {
   init: function (tag, filter, options) {
     if (options.cache) {
@@ -33,8 +41,12 @@ var _engine = {
   loadTranslation: function(translation, id) {
     this.options.locale = new Locale(translation, id);
   },
+  tokenize: function (html, filepath) {
+    var tokens = parse(html, filepath, this.options);
+    return tokens;
+  },
   parse: function (html, filepath) {
-    var tokens = parse(html, filepath, this.options)
+    var tokens = this.tokenize(html, filepath);
     return this.parser.parse(tokens)
   },
   render: function (tpl, ctx, opts) {
@@ -165,7 +177,7 @@ function normalizeStringArray (value) {
   return []
 }
 
-export default function(options) {
+export function createEngine(options) {
   options = _.assign({
     root: ['.'],
     cache: false,
