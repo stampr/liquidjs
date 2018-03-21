@@ -1,4 +1,4 @@
-import * as _ from './util/underscore.js';
+import { assign } from './util/underscore.js';
 
 function shouldTrimLeft (token, inRaw, options) {
   if (inRaw) return false
@@ -26,8 +26,8 @@ function trimRight (token, greedy) {
   token.value = token.value.replace(rRight, '')
 }
 
-export default function whiteSpaceCtrl(tokens, options) {
-  options = _.assign({ greedy: true }, options)
+export default function (tokens, options) {
+  options = assign({ greedy: true }, options)
   var inRaw = false
 
   tokens.forEach((token, i) => {

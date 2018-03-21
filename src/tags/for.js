@@ -1,4 +1,4 @@
-import { isTruthy, evalExp } from '../syntax.js';
+import { evalExp } from '../syntax.js';
 import { mapSeries } from '../util/promise.js';
 import * as _ from '../util/underscore.js';
 import assert from '../util/assert.js';

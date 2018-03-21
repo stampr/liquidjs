@@ -2,7 +2,7 @@ const chai = require('chai')
 const expect = chai.expect
 var syntax = require('../src/syntax.js')
 var createScope = require('../src/scope.js').createScope
-var SafeObject = require('../src/safe-object.js');
+var SafeObject = require('../src/safe-object.js').default;
 
 chai.use(require('chai-as-promised'))
 

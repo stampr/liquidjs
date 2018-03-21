@@ -2,7 +2,7 @@ import * as lexical from './lexical.js';
 import createOperators from './operators.js';
 import assert from './util/assert.js';
 
-export const operators = createOperators(isTruthy, lexical.EMPTY);
+const operators = createOperators(isTruthy, lexical.EMPTY);
 
 export function evalExp (exp, scope) {
   assert(scope, 'unable to evalExp: scope undefined')
