@@ -689,7 +689,7 @@ function trimRight(token, greedy) {
   token.value = token.value.replace(rRight, '');
 }
 
-function whiteSpaceCtrl(tokens, options) {
+var whiteSpaceCtrl = function (tokens, options) {
   options = assign({ greedy: true }, options);
   var inRaw = false;
 
@@ -705,7 +705,7 @@ function whiteSpaceCtrl(tokens, options) {
       trimRight(tokens[i + 1], options.greedy);
     }
   });
-}
+};
 
 function parse(input, file, options) {
   assert(isString(input), 'illegal input; "' + ('' + input) + '"');
