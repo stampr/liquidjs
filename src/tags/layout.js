@@ -1,4 +1,4 @@
-const Liquid = require('..')
+const Liquid = require('../index.js');
 const lexical = Liquid.lexical
 const assert = require('../util/assert.js')
 const staticFileRE = /\S+/

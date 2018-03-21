@@ -1,4 +1,4 @@
-const Liquid = require('..')
+const Liquid = require('../index.js');
 const lexical = Liquid.lexical
 const groupRE = new RegExp(`^(?:(${lexical.value.source})\\s*:\\s*)?(.*)$`)
 const candidatesRE = new RegExp(lexical.value.source, 'g')

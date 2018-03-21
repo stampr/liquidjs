@@ -1,4 +1,4 @@
-const Liquid = require('..')
+const Liquid = require('../index.js');
 const firstSeries = require('../util/promise.js').firstSeries
 
 const evaluateBranch = (val, cond) => {

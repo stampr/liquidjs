@@ -1,4 +1,4 @@
-const Liquid = require('..')
+const Liquid = require('../index.js');
 
 module.exports = function (liquid) {
   liquid.registerTag('unless', {
@@ -25,7 +25,7 @@ module.exports = function (liquid) {
       return Liquid.evalExp(this.cond, scope).then(cond => {
         return Liquid.isFalsy(cond)
           ? liquid.renderer.renderTemplates(this.templates, scope)
-          : liquid.renderer.renderTemplates(this.elseTemplates, scope)        
+          : liquid.renderer.renderTemplates(this.elseTemplates, scope)
       })
     }
   })

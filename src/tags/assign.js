@@ -1,5 +1,5 @@
-const Liquid = require('..')
-const lexical = Liquid.lexical
+const Liquid = require('../index.js');
+const lexical = Liquid.lexical;
 const re = new RegExp(`(${lexical.identifier.source})\\s*=(.*)`)
 const assert = require('../util/assert.js')
 

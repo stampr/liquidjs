@@ -1,4 +1,4 @@
-const Liquid = require('..')
+const Liquid = require('../index.js');
 const lexical = Liquid.lexical
 const withRE = new RegExp(`with\\s+(${lexical.value.source})`)
 const staticFileRE = /\S+/
