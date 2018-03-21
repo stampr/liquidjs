@@ -1516,7 +1516,7 @@ var tag_assign = function (liquid) {
     render: function render(scope) {
       var _this = this;
 
-      return evalValue(this.value, scope).then(function (value$$1) {
+      return liquid.evalValue(this.value, scope).then(function (value$$1) {
         scope.set(_this.key, value$$1);
         return '';
       });
