@@ -1,12 +1,10 @@
 {
   "name": "liquidjs",
-  "version": "3.1.1",
+  "version": "3.1.1-stampr1",
   "description": "Liquid template engine by pure JavaScript: compatible to shopify, easy to extend.",
-  "main": "./dist/liquidjs.cjs.js",
-  "module": "./dist/liquidjs.es2015.js",
+  "main": "./src/main.js",
   "scripts": {
     "lint": "eslint .",
-    "build": "rollup -c",
     "test": "mocha -r ./test-helpers test",
     "coverage": "cross-env NODE_ENV=test istanbul cover --report html ./node_modules/mocha/bin/_mocha -- -R spec --recursive",
     "lcov": "cross-env NODE_ENV=test istanbul cover --report lcovonly ./node_modules/mocha/bin/_mocha -- -R spec --recursive",
@@ -62,13 +60,6 @@
     "sinon": "^4.0.1",
     "sinon-chai": "^2.14.0",
     "supertest": "^3.0.0",
-    "reify": "^0.14.2",
-    "rollup": "^0.41.4",
-    "rollup-analyzer": "^1.0.1",
-    "rollup-plugin-babel": "^2.7.1",
-    "rollup-plugin-commonjs": "^7.0.0",
-    "rollup-plugin-json": "^2.1.0",
-    "rollup-plugin-node-builtins": "^2.1.2",
-    "rollup-plugin-node-resolve": "^2.0.0"
+    "reify": "^0.14.2"
   }
 }
