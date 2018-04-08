@@ -4,7 +4,6 @@ import assert from './util/assert.js';
 import { parse } from './tokenizer.js';
 import { statFileAsync, readFileAsync } from './util/fs.js';
 import path from 'path';
-import * as url from './util/url.js';
 import Render from './render.js';
 import Tag from './tag.js';
 import Filter from './filter.js';
@@ -96,9 +95,7 @@ var _engine = {
       });
     }
     else {
-      return typeof XMLHttpRequest === 'undefined'
-        ? this.getTemplateFromFile(filepath, root)
-        : this.getTemplateFromUrl(filepath, root);
+      return this.getTemplateFromFile(filepath, root);
     }
   },
   getTemplateFromFile: function (filepath, root) {
@@ -121,42 +118,6 @@ var _engine = {
             .then(str => this.parse(str, filepath))
         }
       })
-  },
-  getTemplateFromUrl: function (filepath, root) {
-    var fullUrl
-    if (url.valid(filepath)) {
-      fullUrl = filepath
-    } else {
-      if (!url.extname(filepath)) {
-        filepath += this.options.extname
-      }
-      fullUrl = url.resolve(root || this.options.root, filepath)
-    }
-    if (this.options.cache) {
-      var tpl = this.cache[filepath]
-      if (tpl) {
-        return Promise.resolve(tpl)
-      }
-    }
-    return new Promise((resolve, reject) => {
-      var xhr = new XMLHttpRequest()
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          var tpl = this.parse(xhr.responseText)
-          if (this.options.cache) {
-            this.cache[filepath] = tpl
-          }
-          resolve(tpl)
-        } else {
-          reject(new Error(xhr.statusText))
-        }
-      }
-      xhr.onerror = () => {
-        reject(new Error('An error occurred whilst sending the response.'))
-      }
-      xhr.open('GET', fullUrl)
-      xhr.send()
-    })
   },
   express: function (opts) {
     opts = opts || {}
