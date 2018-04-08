@@ -100,8 +100,8 @@ describe('filters', function () {
     it('should render string as string if not valid', function () {
       return test('{{ "foo" | date: "%Y"}}', 'foo')
     })
-    it('should render object as string if not valid', function () {
-      return test('{{ obj | date: "%Y"}}', '{"foo":"bar"}')
+    it('should render object as empty string if not valid', function () {
+      return test('{{ obj | date: "%Y"}}', '')
     })
   })
 
@@ -175,7 +175,7 @@ describe('filters', function () {
   })
 
   it('should support map', function () {
-    return test('{{posts | map: "category"}}', '["foo","bar"]')
+    return test('{{posts | map: "category"}}', 'foobar')
   })
 
   describe('minus', function () {

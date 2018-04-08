@@ -43,10 +43,19 @@ describe('liquid', function () {
   })
   describe('{{value}}', function () {
     it('should value object', function () {
-      return expect(engine.parseAndRender('{{obj}}', ctx)).to.eventually.equal('{"foo":"bar"}')
+      // return expect(engine.parseAndRender('{{obj}}', ctx)).to.eventually.equal('{"foo":"bar"}')
+      // shopify liquid renders objects as empty strings.  or at least, that's what it seems since
+      // it's not possible to create a non-shopify object in the theme.  TODO: dig through
+      // shopify/liquid repo
+      return expect(engine.parseAndRender('{{obj}}', ctx)).to.eventually.equal('')
     })
     it('should value array', function () {
-      return expect(engine.parseAndRender('{{arr}}', ctx)).to.eventually.equal('[-2,"a"]')
+      // arrays are rendered inline with no separation.  odd behavior, but the correct one
+      // {% assign arr = "one,two,three" | split: "," %}
+      // array: {{ arr }}
+      // renders as: "onetwothree"
+      // return expect(engine.parseAndRender('{{arr}}', ctx)).to.eventually.equal('[-2,"a"]')
+      return expect(engine.parseAndRender('{{arr}}', ctx)).to.eventually.equal('-2a')
     })
     it('should value undefined to empty', function () {
       return expect(engine.parseAndRender('foo{{zzz}}bar', ctx)).to.eventually.equal('foobar')
@@ -68,11 +77,11 @@ describe('liquid', function () {
     }).to.not.throw()
   })
   it('should render template multiple times', function () {
-    var template = engine.parse('{{obj}}')
+    var template = engine.parse('{{name}}')
     return engine.render(template, ctx)
-      .then(result => expect(result).to.equal('{"foo":"bar"}'))
+      .then(result => expect(result).to.equal('harttle'))
       .then(() => engine.render(template, ctx))
-      .then((result) => expect(result).to.equal('{"foo":"bar"}'))
+      .then((result) => expect(result).to.equal('harttle'))
   })
   it('should render filters', function () {
     var template = engine.parse('<p>{{arr | join: "_"}}</p>')
