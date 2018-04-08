@@ -39,7 +39,7 @@ var createFilters = liquid => {
     },
     'default': (v, arg) => isTruthy(v) ? v : arg,
     'divided_by': (v, arg) => Math.floor(v / arg),
-    'downcase': v => v.toLowerCase(),
+    'downcase': v => stringify(v).toLowerCase(),
     'escape': escape,
 
     'escape_once': str => escape(unescape(str)),
