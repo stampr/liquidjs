@@ -1,6 +1,6 @@
 {
   "name": "liquidjs",
-  "version": "3.1.1-stampr3",
+  "version": "3.1.1-stampr4",
   "description": "Liquid template engine by pure JavaScript: compatible to shopify, easy to extend.",
   "main": "./src/main.js",
   "scripts": {
@@ -57,9 +57,9 @@
     "jsdom": "^11.5.1",
     "mocha": "^4.0.0",
     "mock-fs": "^4.4.1",
+    "reify": "^0.14.2",
     "sinon": "^4.0.1",
     "sinon-chai": "^2.14.0",
-    "supertest": "^3.0.0",
-    "reify": "^0.14.2"
+    "supertest": "^3.0.0"
   }
 }
