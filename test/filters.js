@@ -18,7 +18,9 @@ var ctx = {
     category: 'foo'
   }, {
     category: 'bar'
-  }]
+  }],
+  test_null: null,
+  test_undefined: undefined,
 }
 
 function test (src, dst, engine) {
@@ -132,8 +134,12 @@ describe('filters', function () {
     it('should escape normal string', function () {
       return test('{{ "Tetsuro Takara" | escape }}', 'Tetsuro Takara')
     })
-    it('should escape function', function () {
-      return test('{{ func | escape }}', 'function () {}')
+    it('should return an empty string for null, undefined, or a function', function () {
+      return Promise.all([
+        test('{{ func | escape }}', ''),
+        test('{{ test_null | escape }}', ''),
+        test('{{ test_undefined | escape }}', ''),
+      ]);
     })
   })
 

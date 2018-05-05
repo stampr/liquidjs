@@ -184,6 +184,7 @@ function getMaxFixed (l, r) {
 }
 
 function stringify (obj) {
+  if (null === obj || undefined === obj || typeof obj === 'function') return '';
   return obj + ''
 }
 
