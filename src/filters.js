@@ -1,3 +1,6 @@
+import sortBy from 'lodash.sortby';
+import uniq from 'lodash.uniq';
+
 import strftime from './util/strftime.js';
 import * as _ from './util/underscore.js';
 import { argsToObject } from './util/args.js';
@@ -27,7 +30,7 @@ var createFilters = liquid => {
     'append': (v, arg) => v + arg,
     'capitalize': str => stringify(str).charAt(0).toUpperCase() + str.slice(1),
     'ceil': v => Math.ceil(v),
-    'concat': (v, arg) => Array.prototype.concat.call(v, arg),
+    'concat': (v, arg) => Array.prototype.concat.call(toCollection(v), arg),
     'date': (v, arg) => {
       var date = v
       if (v === 'now') {
@@ -43,12 +46,15 @@ var createFilters = liquid => {
     'escape': escape,
 
     'escape_once': str => escape(unescape(str)),
-    'first': v => v[0],
+    'first': v => toCollection(v)[0],
     'floor': v => Math.floor(v),
-    'join': (v, arg) => Array.isArray(v) ? v.join(arg) : v,
-    'last': v => v[v.length - 1],
+    'join': (v, arg) => toCollection(v).join(arg),
+    'last': v => {
+      const collection = toCollection(v);
+      return collection[collection.length - 1];
+    },
     'lstrip': v => stringify(v).replace(/^\s+/, ''),
-    'map': (arr, arg) => arr.map(v => v[arg]),
+    'map': (arr, arg) => toCollection(arr).map(v => v[arg]),
     'minus': bindFixed((v, arg) => v - arg),
     'modulo': bindFixed((v, arg) => v % arg),
     'newline_to_br': v => v.replace(/\n/g, '<br />'),
@@ -59,16 +65,34 @@ var createFilters = liquid => {
     'replace': (v, pattern, replacement) =>
       stringify(v).split(pattern).join(replacement),
     'replace_first': (v, arg1, arg2) => stringify(v).replace(arg1, arg2),
-    'reverse': v => v.reverse(),
+    'reverse': v => toCollection(v).reverse(),
     'round': (v, arg) => {
       var amp = Math.pow(10, arg || 0)
       return Math.round(v * amp, arg) / amp
     },
     'rstrip': str => stringify(str).replace(/\s+$/, ''),
-    'size': v => v.length,
+    'size': v => {
+      if (typeof v === 'string') {
+        return v.length;
+      }
+      else if (typeof v === 'object') {
+        return toCollection(v).length;
+      }
+      else {
+        return 0;
+      }
+    },
     'slice': (v, begin, length) =>
       v.substr(begin, length === undefined ? 1 : length),
-    'sort': (v, arg) => v.sort(arg),
+    'sort': (v, property) => {
+      const collection = toCollection(v);
+      if (property) {
+        return sortBy(collection, property);
+      }
+      else {
+        return collection.sort();
+      }
+    },
     'split': (v, arg) => stringify(v).split(arg),
     'strip': (v) => stringify(v).trim(),
     'strip_html': v => stringify(v).replace(/<\/?\s*\w+\s*\/?>/g, ''),
@@ -88,16 +112,7 @@ var createFilters = liquid => {
       if (arr.length > l) ret += o
       return ret
     },
-    'uniq': function (arr) {
-      var u = {}
-      return (arr || []).filter(val => {
-        if (u.hasOwnProperty(val)) {
-          return false
-        }
-        u[val] = true
-        return true
-      })
-    },
+    'uniq': v => uniq(toCollection(v)),
     'upcase': str => stringify(str).toUpperCase(),
     'url_encode': encodeURIComponent,
     'translate': function() {
@@ -186,6 +201,21 @@ function getMaxFixed (l, r) {
 function stringify (obj) {
   if (null === obj || undefined === obj || typeof obj === 'function') return '';
   return obj + ''
+}
+
+// in liquid, a collection can be both object[] and { handle: object, ... }
+// this means when dealing with "arrays", we need to make sure things work as expected
+function toCollection(v) {
+  if (Array.isArray(v)) {
+    return v;
+  }
+  else if (v && typeof v === 'object') {
+    // return Object.values(v);
+    return Object.keys(v).map(key => v[key]);
+  }
+  else {
+    return [];
+  }
 }
 
 function bindFixed (cb) {

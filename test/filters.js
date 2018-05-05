@@ -10,8 +10,10 @@ var ctx = {
   date: new Date(),
   foo: 'bar',
   arr: [-2, 'a'],
+  empty_arr: [],
   obj: {
-    foo: 'bar'
+    foo: 'bar',
+    second: 'two',
   },
   func: function () {},
   posts: [{
@@ -154,6 +156,15 @@ describe('filters', function () {
     var src = '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}' +
             '{{ my_array | first }}'
     return test(src, 'apples')
+  })
+
+  describe('first', function () {
+    it('should handle null', () => test('{{ test_null | first }}', ''));
+    it('should handle undefined', () => test('{{ test_undefined | first }}', ''));
+    it('should handle function', () => test('{{ func | first }}', ''));
+    it('should support arrays', () => test('{{ arr | first }}', '-2'));
+    it('should support empty arrays', () => test('{{ empty_arr | first }}', ''));
+    it('should support objects', () => test('{{ obj | first }}', 'bar'));
   })
 
   describe('floor', function () {
