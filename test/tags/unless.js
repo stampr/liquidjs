@@ -32,8 +32,13 @@ describe('tags/unless', function () {
     return expect(liquid.parseAndRender(src))
       .to.eventually.equal('')
   })
-  it('should handle an undefined deep object reference', function () {
-    var src = '{% unless something.deep.undefined.here %}yes{%endunless%}'
+  it('should handle an undefined deep object reference equals blank', function () {
+    var src = '{% unless something.deep.undefined.here == blank %}yes{%endunless%}'
+    return expect(liquid.parseAndRender(src))
+      .to.eventually.equal('')
+  })
+  it('should handle an undefined deep object reference equals blank', function () {
+    var src = '{% unless something.deep.undefined.here != blank %}yes{%endunless%}'
     return expect(liquid.parseAndRender(src))
       .to.eventually.equal('yes')
   })

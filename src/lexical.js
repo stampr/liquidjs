@@ -1,6 +1,7 @@
 function EmptyVariable(){}
 EmptyVariable.prototype.toString = function() { return ''; };
 EmptyVariable.prototype.toJSON = function() { return ''; };
+EmptyVariable.prototype.valueOf = function() { return null; };
 
 export const EMPTY = new EmptyVariable();
 
@@ -77,7 +78,7 @@ export function matchValue (str) {
 
 export function parseLiteral (str) {
   if ([ 'nil', 'null' ].indexOf(str) > -1) {
-    // console.log('parseLiteral; nil', str);
+    // console.log('parseLiteral; null', str);
     return null;
   }
   if ([ 'empty', 'blank' ].indexOf(str) > -1) {

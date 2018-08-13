@@ -34,10 +34,10 @@ describe('tags/if', function () {
       return expect(liquid.parseAndRender(src, ctx))
         .to.eventually.equal('a')
     })
-    it('should return false if empty string', function () {
+    it('should return true if empty string', function () {
       var src = '{%if emptyString%}a{% else %}b{%endif%}'
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('b');
+        .to.eventually.equal('a');
     })
   })
   describe('expression as condition', function () {
@@ -132,6 +132,10 @@ describe('tags/if', function () {
     });
     it('should evaluate false for "" != empty', function () {
       var src = '{% if emptyString != empty %}yes{% else %}no{% endif %}'
+      return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('no')
+    });
+    it('should evaluate false for deep.undefined.value != empty', function () {
+      var src = '{% if deep.undefined.value != empty %}yes{% else %}no{% endif %}'
       return expect(liquid.parseAndRender(src, ctx)).to.eventually.equal('no')
     });
   });

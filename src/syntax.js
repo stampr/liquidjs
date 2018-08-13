@@ -61,10 +61,16 @@ export function evalValue (str, scope) {
   throw new TypeError(`cannot eval '${str}' as value`)
 }
 
-export function isTruthy (val) {
-  return !isFalsy(val)
+export function isTruthy (value) {
+  return !isFalsy(value)
 }
 
-export function isFalsy (val) {
-  return val === false || undefined === val || val === null || lexical.EMPTY === val || (typeof val === 'string' && val.length === 0);
+export function isFalsy (value) {
+  if (value === false) {
+    return true;
+  }
+  if (value === null || value === undefined) {
+    return true;
+  }
+  return false;
 }

@@ -142,17 +142,19 @@ describe('expression', function () {
   })
 
   describe('.isTruthy()', function () {
-    // Spec: https://shopify.github.io/liquid/basics/truthy-and-falsy/
-    expect(isTruthy(true)).to.be.true
-    expect(isTruthy(false)).to.be.false
-    expect(isTruthy(null)).to.be.false
-    expect(isTruthy('foo')).to.be.true
-    expect(isTruthy('')).to.be.false
-    expect(isTruthy(0)).to.be.true
-    expect(isTruthy(1)).to.be.true
-    expect(isTruthy(1.1)).to.be.true
-    expect(isTruthy([1])).to.be.true
-    expect(isTruthy([])).to.be.true
+    it('should return truthy', () => {
+      // Spec: https://shopify.github.io/liquid/basics/truthy-and-falsy/
+      expect(isTruthy(true)).to.equal(true, `true`);
+      expect(isTruthy(false)).to.equal(false, `false`);
+      expect(isTruthy(null)).to.equal(false, `null`);
+      expect(isTruthy('foo')).to.equal(true, `'foo'`);
+      expect(isTruthy('')).to.equal(true, `''`);
+      expect(isTruthy(0)).to.equal(true, `0`);
+      expect(isTruthy(1)).to.equal(true, `1`);
+      expect(isTruthy(1.1)).to.equal(true, `1.1`);
+      expect(isTruthy([1])).to.equal(true, `[1]`);
+      expect(isTruthy([])).to.equal(true, `[]`);
+    });
   })
 
   describe('.evalExp()', function () {
@@ -202,27 +204,27 @@ describe('expression', function () {
 
     it('empty comparisons', function () {
       return Promise.all([
-        expect(evalExp('emptyarr == empty', scope)).to.eventually.be.true,
-        expect(evalExp('nonemptyarr == empty', scope)).to.eventually.be.false,
-        expect(evalExp('emptystr == empty', scope)).to.eventually.be.true,
-        expect(evalExp('one != empty', scope)).to.eventually.be.true,
-        expect(evalExp('x != empty', scope)).to.eventually.be.true,
-        expect(evalExp('undefined == blank', scope)).to.eventually.be.true,
-        expect(evalExp('emptyarr == blank', scope)).to.eventually.be.true,
-        expect(evalExp('nonemptyarr == blank', scope)).to.eventually.be.false,
-        expect(evalExp('emptystr == blank', scope)).to.eventually.be.true,
-        expect(evalExp('one != blank', scope)).to.eventually.be.true,
-        expect(evalExp('x != blank', scope)).to.eventually.be.true,
-        expect(evalExp('x != y', scope)).to.eventually.be.true,
-        expect(evalExp('x != z', scope)).to.eventually.be.true,
-        expect(evalExp('y == empty', scope)).to.eventually.be.true,
-        expect(evalExp('z == empty', scope)).to.eventually.be.true,
-        expect(evalExp('null == empty', scope)).to.eventually.be.true,
-        expect(evalExp('undefined == empty', scope)).to.eventually.be.true,
-        expect(evalExp('undefined == undefined', scope)).to.eventually.be.true,
-        expect(evalExp('null == null', scope)).to.eventually.be.true,
-        expect(evalExp('empty == empty', scope)).to.eventually.be.true,
-        expect(evalExp('empty == blank', scope)).to.eventually.be.true,
+        expect(evalExp('emptyarr == empty', scope)).to.eventually.equal(true, 'emptyarr == empty'),
+        expect(evalExp('nonemptyarr == empty', scope)).to.eventually.equal(false, 'nonemptyarr == empty'),
+        expect(evalExp('emptystr == empty', scope)).to.eventually.equal(true, 'emptystr == empty'),
+        expect(evalExp('one != empty', scope)).to.eventually.equal(true, 'one != empty'),
+        expect(evalExp('x != empty', scope)).to.eventually.equal(true, 'x != empty'),
+        expect(evalExp('undefined == blank', scope)).to.eventually.equal(true, 'undefined == blank'),
+        expect(evalExp('emptyarr == blank', scope)).to.eventually.equal(true, 'emptyarr == blank'),
+        expect(evalExp('nonemptyarr == blank', scope)).to.eventually.equal(false, 'nonemptyarr == blank'),
+        expect(evalExp('emptystr == blank', scope)).to.eventually.equal(true, 'emptystr == blank'),
+        expect(evalExp('one != blank', scope)).to.eventually.equal(true, 'one != blank'),
+        expect(evalExp('x != blank', scope)).to.eventually.equal(true, 'x != blank'),
+        expect(evalExp('x != y', scope)).to.eventually.equal(true, 'x != y'),
+        expect(evalExp('x != z', scope)).to.eventually.equal(true, 'x != z'),
+        expect(evalExp('y == empty', scope)).to.eventually.equal(true, 'y == empty'),
+        expect(evalExp('z == empty', scope)).to.eventually.equal(true, 'z == empty'),
+        expect(evalExp('null == empty', scope)).to.eventually.equal(true, 'null == empty'),
+        expect(evalExp('undefined == empty', scope)).to.eventually.equal(true, 'undefined == empty'),
+        expect(evalExp('undefined == undefined', scope)).to.eventually.equal(true, 'undefined == undefined'),
+        expect(evalExp('null == null', scope)).to.eventually.equal(true, 'null == null'),
+        expect(evalExp('empty == empty', scope)).to.eventually.equal(true, 'empty == empty'),
+        expect(evalExp('empty == blank', scope)).to.eventually.equal(true, 'empty == blank'),
       ]);
     })
   })

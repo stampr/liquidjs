@@ -23,10 +23,20 @@ export default function(liquid) {
     },
 
     render: function (scope, hash) {
+      // console.log('unless cond', this.cond);
       return evalExp(this.cond, scope).then(cond => {
-        return isFalsy(cond)
+        // console.log('unless cond; eval', cond, 'isFalsy?', isFalsy(cond), {
+        //   truthy: this.templates,
+        //   falsy: this.elseTemplates,
+        // });
+        const result = isFalsy(cond)
           ? liquid.renderer.renderTemplates(this.templates, scope)
-          : liquid.renderer.renderTemplates(this.elseTemplates, scope)
+          : liquid.renderer.renderTemplates(this.elseTemplates, scope);
+        // result.then(_result => {
+        //   console.log('unless cond; result', `"${_result}"`);
+        //   return _result;
+        // });
+        return result;
       })
     }
   })
