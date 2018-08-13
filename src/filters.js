@@ -27,7 +27,7 @@ var unescapeMap = {
 var createFilters = liquid => {
   let filters = {
     'abs': v => Math.abs(v),
-    'append': (v, arg) => v + arg,
+    'append': (v, arg) => stringify(v) + arg,
     'capitalize': str => stringify(str).charAt(0).toUpperCase() + str.slice(1),
     'ceil': v => Math.ceil(v),
     'concat': (v, arg) => Array.prototype.concat.call(toCollection(v), arg),
@@ -51,17 +51,17 @@ var createFilters = liquid => {
     'join': (v, arg) => toCollection(v).join(arg),
     'last': v => {
       const collection = toCollection(v);
-      return collection[collection.length - 1];
+      return stringify(collection[collection.length - 1]);
     },
     'lstrip': v => stringify(v).replace(/^\s+/, ''),
     'map': (arr, arg) => toCollection(arr).map(v => v[arg]),
     'minus': bindFixed((v, arg) => v - arg),
     'modulo': bindFixed((v, arg) => v % arg),
-    'newline_to_br': v => v.replace(/\n/g, '<br />'),
+    'newline_to_br': v => stringify(v).replace(/\n/g, '<br />'),
     'plus': bindFixed((v, arg) => Number(v) + Number(arg)),
-    'prepend': (v, arg) => arg + v,
-    'remove': (v, arg) => v.split(arg).join(''),
-    'remove_first': (v, l) => v.replace(l, ''),
+    'prepend': (v, arg) => arg + stringify(v),
+    'remove': (v, arg) => stringify(v).split(arg).join(''),
+    'remove_first': (v, l) => stringify(v).replace(l, ''),
     'replace': (v, pattern, replacement) =>
       stringify(v).split(pattern).join(replacement),
     'replace_first': (v, arg1, arg2) => stringify(v).replace(arg1, arg2),
@@ -83,7 +83,7 @@ var createFilters = liquid => {
       }
     },
     'slice': (v, begin, length) =>
-      v.substr(begin, length === undefined ? 1 : length),
+      stringify(v).substr(begin, length === undefined ? 1 : length),
     'sort': (v, property) => {
       const collection = toCollection(v);
       if (property) {
@@ -107,14 +107,14 @@ var createFilters = liquid => {
     },
     'truncatewords': (v, l, o) => {
       if (o === undefined) o = '...'
-      var arr = v.split(' ')
+      var arr = stringify(v).split(' ')
       var ret = arr.slice(0, l).join(' ')
       if (arr.length > l) ret += o
       return ret
     },
     'uniq': v => uniq(toCollection(v)),
     'upcase': str => stringify(str).toUpperCase(),
-    'url_encode': encodeURIComponent,
+    'url_encode': v => encodeURIComponent(stringify(v)),
     'translate': function() {
       let scope   = this;
       let args    = Array.from(arguments);
