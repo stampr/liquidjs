@@ -31,8 +31,25 @@ function test (src, dst, engine) {
 }
 
 describe('filters', function () {
-  it('should support multiple filter on undefined', () => {
-    return test(`{{ something.undefined | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+  describe.only('multi filters', () => {
+    it('should support multiple filter on null element', () => {
+      return test(`{{ test_null | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+    });
+    it('should support multiple filter on root element', () => {
+      return test(`{{ test_undefined | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+    });
+    it('should support multiple filter on undefined', () => {
+      return test(`{{ something.undefined | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+    });
+    it('should support multiple filter on deep undefined', () => {
+      return test(`{{ obj.undefined | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+    });
+  });
+
+  describe.only('split', () => {
+    it('should split on not found string', () => {
+      return test(`{{ foo | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+    });
   });
 
   describe('abs', function () {
