@@ -31,6 +31,10 @@ function test (src, dst, engine) {
 }
 
 describe('filters', function () {
+  it('should support multiple filter on undefined', () => {
+    return test(`{{ something.undefined | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+  });
+
   describe('abs', function () {
     it('should return 3 for -3', () => test('{{ -3 | abs }}', '3'))
     it('should return 2 for arr[0]', () => test('{{ arr[0] | abs }}', '2'))

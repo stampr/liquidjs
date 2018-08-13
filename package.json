@@ -1,6 +1,6 @@
 {
   "name": "liquidjs",
-  "version": "3.1.1-stampr6",
+  "version": "3.1.1-stampr7",
   "description": "Liquid template engine by pure JavaScript: compatible to shopify, easy to extend.",
   "main": "./src/main.js",
   "scripts": {
