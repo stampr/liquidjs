@@ -1,18 +1,24 @@
 const chai = require('chai')
 const expect = chai.expect
 
-var t = require('../../src/util/strftime.js')
+var t = require('../../src/util/strftime.js').default
+
+// mutates date input
+// takes a utc date and returns the same date/time in local timezone
+const createLocalDate = (utcDate, timezoneOffset = -480) => {
+  // utcDate.getTimezoneOffset = () => timezoneOffset;
+  utcDate.setMinutes(utcDate.getMinutes() + utcDate.getTimezoneOffset());
+  const d = new Date(utcDate.getTime());
+  d.getTimezoneOffset = () => timezoneOffset;
+  return d;
+};
 
 describe('util/strftime', function () {
   var now
   var then
   before(function () {
-    mockUTC()
-    now = new Date('2016-01-04T13:15:23.000Z')
-    then = new Date('2016-03-06T03:05:03.000Z')
-  })
-  after(function () {
-    restoreUTC()
+    now = createLocalDate(new Date('2016-01-04T13:15:23.000Z'))
+    then = createLocalDate(new Date('2016-03-06T03:05:03.000Z'))
   })
 
   it('should format UTC datetime', function () {
@@ -37,7 +43,7 @@ describe('util/strftime', function () {
     expect(t(now, '%I')).to.equal('01')
   })
   it('should format %I as 12 for 00:00', function () {
-    var date = new Date('2016-01-01T00:00:00.000Z')
+    var date = createLocalDate(new Date('2016-01-01T00:00:00.000Z'))
     expect(t(date, '%I')).to.equal('12')
   })
   describe('%j', function () {
@@ -45,11 +51,11 @@ describe('util/strftime', function () {
       expect(t(then, '%j')).to.equal('066')
     })
     it('should take count of leap years', function () {
-      var date = new Date('2001-03-01')
+      var date = createLocalDate(new Date('2001-03-01T00:00:00.000Z'))
       expect(t(date, '%j')).to.equal('060')
     })
     it('should take count of leap years', function () {
-      var date = new Date('2000-03-01')
+      var date = createLocalDate(new Date('2000-03-01T00:00:00.000Z'))
       expect(t(date, '%j')).to.equal('061')
     })
   })
@@ -60,7 +66,7 @@ describe('util/strftime', function () {
     expect(t(now, '%l')).to.equal(' 1')
   })
   it('should format %l as 12 for 00:00', function () {
-    var date = new Date('2016-01-01T00:00:00.000Z')
+    var date = createLocalDate(new Date('2016-01-01T00:00:00.000Z'))
     expect(t(date, '%l')).to.equal('12')
   })
   it('should format %L as 0 padded millisecond', function () {
@@ -75,13 +81,13 @@ describe('util/strftime', function () {
     expect(t(then, '%P')).to.equal('am')
   })
   it('should format %q as date suffix', function () {
-    var st = new Date('2016-03-01T03:05:03.000Z')
-    var nd = new Date('2016-03-02T03:05:03.000Z')
-    var rd = new Date('2016-03-03T03:05:03.000Z')
-    expect(t(st, '%q')).to.equal('st')
-    expect(t(nd, '%q')).to.equal('nd')
-    expect(t(rd, '%q')).to.equal('rd')
-    expect(t(now, '%q')).to.equal('th')
+    var st = createLocalDate(new Date('2016-03-01T03:05:03.000Z'))
+    var nd = createLocalDate(new Date('2016-03-02T03:05:03.000Z'))
+    var rd = createLocalDate(new Date('2016-03-03T03:05:03.000Z'))
+    expect(t(st, '%q')).to.equal('st', 'st: ' + st.toGMTString())
+    expect(t(nd, '%q')).to.equal('nd', 'nd: ' + nd.toGMTString())
+    expect(t(rd, '%q')).to.equal('rd', 'rd: ' + rd.toGMTString())
+    expect(t(now, '%q')).to.equal('th', 'now: ' + now.toGMTString())
   })
   it('should format %s as UNIX seconds', function () {
     expect(t(now, '%s')).to.be.match(/\d+/)
@@ -113,8 +119,7 @@ describe('util/strftime', function () {
     expect(t(now, '%z')).to.equal('+0800')
   })
   it('should format %z as negative time zone', function () {
-    var date = new Date('2016-01-04T13:15:23.000Z')
-    date.getTimezoneOffset = () => 480
+    const date = createLocalDate(new Date('2016-01-04T13:15:23.000Z'), 480);
     expect(t(date, '%z')).to.equal('-0800')
   })
   it('should escape %% as %', function () {
@@ -125,22 +130,3 @@ describe('util/strftime', function () {
   })
 })
 
-function mockUTC () {
-  var p = Date.prototype
-
-  p._getHours = p.getHours
-  p.getHours = p.getUTCHours
-
-  p._getDays = p.getDays
-  p.getDays = p.getUTCDays
-
-  p._getTimezoneOffset = p._getTimezoneOffset
-  p.getTimezoneOffset = () => -480
-}
-
-function restoreUTC () {
-  var p = Date.prototype
-  p.getHours = p._getHours
-  p.getDays = p._getDays
-  p.getTimezoneOffset = p._getTimezoneOffset
-}

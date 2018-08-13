@@ -1,6 +1,6 @@
 const chai = require('chai')
 const expect = chai.expect
-const assert = require('../../src/util/assert.js')
+const assert = require('../../src/util/assert.js').default
 
 describe('assert', function () {
   it('should not throw if predicate is truthy', function () {

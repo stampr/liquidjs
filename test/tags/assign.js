@@ -18,8 +18,11 @@ describe('tags/assign', function () {
   })
   it('should assign as array', function () {
     var src = '{% assign foo=(1..3) %}{{foo}}'
+    // return expect(liquid.parseAndRender(src))
+    //   .to.eventually.equal('[1,2,3]')
+    // ^== is lib existing.  but i think this is compat match ==\/
     return expect(liquid.parseAndRender(src))
-      .to.eventually.equal('[1,2,3]')
+      .to.eventually.equal('123')
   })
   it('should assign as filter result', function () {
     var src = '{% assign foo="a b" | capitalize | split: " " | first %}{{foo}}'

@@ -5,7 +5,7 @@
   "main": "./src/main.js",
   "scripts": {
     "lint": "eslint .",
-    "test": "mocha -r ./test-helpers test",
+    "test": "mocha -r ./test-helpers test --recursive",
     "coverage": "cross-env NODE_ENV=test istanbul cover --report html ./node_modules/mocha/bin/_mocha -- -R spec --recursive",
     "lcov": "cross-env NODE_ENV=test istanbul cover --report lcovonly ./node_modules/mocha/bin/_mocha -- -R spec --recursive",
     "preversion": "npm run lint && npm test",

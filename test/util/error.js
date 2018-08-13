@@ -4,8 +4,10 @@ const mock = require('mock-fs')
 const path = require('path')
 chai.use(require('chai-as-promised'))
 
-var engine = require('../..')()
-var strictEngine = require('../..')({
+const Liquid = require('../../src/main.js').createEngine;
+
+var engine = Liquid()
+var strictEngine = Liquid({
   strict_variables: true,
   strict_filters: true
 })
@@ -95,7 +97,7 @@ describe('error', function () {
 
   describe('RenderError', function () {
     beforeEach(function () {
-      engine = require('../..')({
+      engine = Liquid({
         root: '/'
       })
       engine.registerTag('throwingTag', {
@@ -268,7 +270,7 @@ describe('error', function () {
 
   describe('ParseError', function () {
     beforeEach(function () {
-      engine = require('../..')()
+      engine = Liquid()
       engine.registerTag('throwsOnParse', {
         parse: function () {
           throw new Error('intended parse error')

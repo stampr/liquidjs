@@ -10,48 +10,67 @@ var dayNames = [
   'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 ]
 var dayNamesShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-var suffixes = {
-  1: 'st',
-  2: 'nd',
-  3: 'rd',
-  'default': 'th'
+
+function getMonth(date) {
+  const month = date.getMonth();
+  return monthNames[month];
+}
+
+function getOrdinal(date) {
+  const day = date.getDate();
+  if (day > 3 && day < 21) {
+    return 'th';
+  }
+  else {
+    switch (day % 10) {
+      case 1:
+        return 'st';
+      case 2:
+        return 'nd';
+      case 3:
+        return 'rd';
+      default:
+        return 'th';
+    }
+  }
+}
+
+function isLeapYear(date) {
+  const year = date.getFullYear();
+  if ((year & 3) != 0) {
+    return false;
+  }
+  return ((year % 100) != 0 || (year % 400) == 0);
+}
+
+const dayCount = [ 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334 ];
+
+function getDayOfYear(date) {
+  const month     = date.getMonth();
+  const day       = date.getDate();
+  const leapYear  = month > 1 && isLeapYear(date);
+  const dayOfYear = (dayCount[month] + day) + (leapYear ? 1 : 0);
+  return dayOfYear;
 }
 
 // prototype extensions
 var _date = {
-  daysInMonth: function (d) {
-    var feb = _date.isLeapYear(d) ? 29 : 28
-    return [31, feb, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-  },
-
-  getDayOfYear: function (d) {
-    var num = 0
-    for (var i = 0; i < d.getMonth(); ++i) {
-      num += _date.daysInMonth(d)[i]
-    }
-    return num + d.getDate()
-  },
+  getDayOfYear,
 
   // Startday is an integer of which day to start the week measuring from
-  // TODO: that comment was retarted. fix it.
   getWeekOfYear: function (d, startDay) {
     // Skip to startDay of this week
-    var now = this.getDayOfYear(d) + (startDay - d.getDay())
+    var now = getDayOfYear(d) + (startDay - d.getDay())
     // Find the first startDay of the year
     var jan1 = new Date(d.getFullYear(), 0, 1)
     var then = (7 - jan1.getDay() + startDay)
     return _number.pad(Math.floor((now - then) / 7) + 1, 2)
   },
 
-  isLeapYear: function (d) {
-    var year = d.getFullYear()
-    return !!((year & 3) === 0 && (year % 100 || (year % 400 === 0 && year)))
-  },
+  isLeapYear,
 
   getSuffix: function (d) {
-    var str = d.getDate().toString()
-    var index = parseInt(str.slice(-1))
-    return suffixes[index] || suffixes['default']
+    return getOrdinal(d);
   },
 
   century: function (d) {
@@ -162,7 +181,7 @@ var formatCodes = {
     return d.getFullYear()
   },
   z: function (d) {
-    var tz = d.getTimezoneOffset() / 60 * 100
+    var tz = (d.getTimezoneOffset() / 60) * 100
     return (tz > 0 ? '-' : '+') + _number.pad(Math.abs(tz), 4)
   },
   '%': function () {
