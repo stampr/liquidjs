@@ -48,6 +48,7 @@ export const valueDeclaration = new RegExp(`(?:${identifier.source}\\s*:\\s*)?${
 export const valueList = new RegExp(`${valueDeclaration.source}(\\s*,\\s*${valueDeclaration.source})*`);
 export const filter = new RegExp(`${identifier.source}(?:\\s*:\\s*${valueList.source})?`, 'g');
 export const filterCapture = new RegExp(`(${identifier.source})(?:\\s*:\\s*(${valueList.source}))?`);
+export const valueCapture = new RegExp(value.source, 'g');
 export const filterLine = new RegExp(`^${filterCapture.source}$`);
 
 export const operators = [
