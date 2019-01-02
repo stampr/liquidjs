@@ -53,6 +53,7 @@ var createFilters = liquid => {
       const collection = toCollection(v);
       return stringify(collection[collection.length - 1]);
     },
+    // TODO: don't use regex
     'lstrip': v => stringify(v).replace(/^\s+/, ''),
     'map': (arr, arg) => toCollection(arr).map(v => v[arg]),
     'minus': bindFixed((v, arg) => v - arg),
@@ -60,16 +61,21 @@ var createFilters = liquid => {
     'newline_to_br': v => stringify(v).replace(/\n/g, '<br />'),
     'plus': bindFixed((v, arg) => Number(v) + Number(arg)),
     'prepend': (v, arg) => arg + stringify(v),
-    'remove': (v, arg) => stringify(v).split(arg).join(''),
-    'remove_first': (v, l) => stringify(v).replace(l, ''),
-    'replace': (v, pattern, replacement) =>
-      stringify(v).split(pattern).join(replacement),
-    'replace_first': (v, arg1, arg2) => stringify(v).replace(arg1, arg2),
+    'remove': (v, arg) => filters.replace(v, arg, ''),
+    'remove_first': (v, l) => filters.replace_first(v, l, ''),
+    'replace': (v, pattern, replacement) => filters.split(v, pattern).join(stringify(replacement)),
+    'replace_first': (v, arg1, arg2) => {
+      const split = filters.split(v, arg1);
+      const beforeRemove = split.shift();
+      const afterRemove = split.join(arg1);
+      return beforeRemove + stringify(arg2) + afterRemove;
+    },
     'reverse': v => toCollection(v).reverse(),
     'round': (v, arg) => {
       var amp = Math.pow(10, arg || 0)
       return Math.round(v * amp, arg) / amp
     },
+    // TODO: don't use regex
     'rstrip': str => stringify(str).replace(/\s+$/, ''),
     'size': v => {
       if (typeof v === 'string') {

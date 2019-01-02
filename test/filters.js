@@ -31,7 +31,7 @@ function test (src, dst, engine) {
 }
 
 describe('filters', function () {
-  describe.only('multi filters', () => {
+  describe('multi filters', () => {
     it('should support multiple filter on null element', () => {
       return test(`{{ test_null | split: 'nonexistent' | last | prepend: '@' }}`, '@');
     });
@@ -46,9 +46,11 @@ describe('filters', function () {
     });
   });
 
-  describe.only('split', () => {
+  describe('split', () => {
     it('should split on not found string', () => {
-      return test(`{{ foo | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+      // return test(`{{ foo | split: 'nonexistent' | last | prepend: '@' }}`, '@');
+      // compatibility dictates this returning the full str
+      return test(`{{ foo | split: 'nonexistent' | last | prepend: '@' }}`, '@bar');
     });
   });
 
