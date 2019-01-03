@@ -42,4 +42,15 @@ describe('tags/unless', function () {
     return expect(liquid.parseAndRender(src))
       .to.eventually.equal('yes')
   })
+  it('should not get tripped up by tag hash parsing (regression test)', async () => {
+    // this breaks after adding commands to hash
+    const src = '{% unless variant[other_options[0]] == current_variant[other_options[0]] %}yes{%endunless%}';
+    // this should not throw
+    const result = await liquid.parseAndRender(src, {
+      other_options: [], // doesn't matter
+      variant: {},
+      current_variant: {},
+    });
+    expect(result).to.equal('yes');
+  });
 })

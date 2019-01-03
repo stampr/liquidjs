@@ -51,24 +51,21 @@ describe('expression', function () {
   });
 
   describe('.evalValue()', function () {
-    it('should eval literals', function () {
-      return Promise.all([
-        expect(evalValue('2.3')).to.eventually.equal(2.3),
-        expect(evalValue('"foo"')).to.eventually.equal('foo'),
-      ])
+    it('should eval literals', async () => {
+      expect(await evalValue('2.3')).to.equal(2.3);
+      expect(await evalValue('"foo"')).to.equal('foo');
     })
 
-    it('should eval variables', function () {
-      return Promise.all([
-        expect(evalValue('23', scope)).eventually.to.equal(23),
-        expect(evalValue('one', scope)).eventually.to.equal(1),
-        expect(evalValue('x', scope)).to.eventually.equal('XXX'),
-      ])
+    it('should eval variables', async () => {
+      expect(await evalValue('23', scope)).to.equal(23);
+      expect(await evalValue('one', scope)).to.equal(1);
+      expect(await evalValue('x', scope)).to.equal('XXX');
     })
 
-    it('should throw if not valid', function () {
-      var fn = () => evalValue('===')
-      return expect(fn).to.throw("cannot eval '===' as value")
+    // NOTE: this is different in compat mode vs. upstream liquidjs.  in upstream this throws
+    it('should not throw if not valid', async () => {
+      const result = await evalValue('===');
+      expect(result).to.equal('===');
     })
 
     describe('dot notation methods', function() {
@@ -164,20 +161,18 @@ describe('expression', function () {
       }).to.throw(/scope undefined/)
     })
 
-    it('should eval simple expression', function () {
-      return Promise.all([
-        expect(evalExp('1<2', scope)).to.eventually.equal(true),
-        expect(evalExp('2<=2', scope)).to.eventually.equal(true),
-        expect(evalExp('one<=two', scope)).to.eventually.equal(true),
-        expect(evalExp('x contains "x"', scope)).to.eventually.equal(false),
-        expect(evalExp('x contains "X"', scope)).to.eventually.equal(true),
-        expect(evalExp('1 contains "x"', scope)).to.eventually.equal(false),
-        expect(evalExp('y contains "x"', scope)).to.eventually.equal(false),
-        expect(evalExp('z contains "x"', scope)).to.eventually.equal(false),
-        expect(evalExp('(1..5) contains 3', scope)).to.eventually.equal(true),
-        expect(evalExp('(1..5) contains 6', scope)).to.eventually.equal(false),
-        expect(evalExp('"<=" == "<="', scope)).to.eventually.equal(true),
-      ])
+    it('should eval simple expression', async () => {
+      expect(await evalExp('1<2', scope)).to.equal(true);
+      expect(await evalExp('2<=2', scope)).to.equal(true);
+      expect(await evalExp('one<=two', scope)).to.equal(true);
+      expect(await evalExp('x contains "x"', scope)).to.equal(false);
+      expect(await evalExp('x contains "X"', scope)).to.equal(true);
+      expect(await evalExp('1 contains "x"', scope)).to.equal(false);
+      expect(await evalExp('y contains "x"', scope)).to.equal(false);
+      expect(await evalExp('z contains "x"', scope)).to.equal(false);
+      expect(await evalExp('(1..5) contains 3', scope)).to.equal(true);
+      expect(await evalExp('(1..5) contains 6', scope)).to.equal(false);
+      expect(await evalExp('"<=" == "<="', scope)).to.equal(true);
     })
 
     describe('complex expression', function () {
@@ -195,55 +190,49 @@ describe('expression', function () {
       })
     })
 
-    it('should eval range expression', function () {
-      return Promise.all([
-        expect(evalExp('(2..4)', scope)).to.eventually.deep.equal([2, 3, 4]),
-        expect(evalExp('(two..4)', scope)).to.eventually.deep.equal([2, 3, 4]),
-      ])
+    it('should eval range expression', async () => {
+      expect(await evalExp('(2..4)', scope)).to.deep.equal([2, 3, 4]);
+      expect(await evalExp('(two..4)', scope)).to.deep.equal([2, 3, 4]);
     })
 
-    it('empty comparisons', function () {
-      return Promise.all([
-        expect(evalExp('emptyarr == empty', scope)).to.eventually.equal(true, 'emptyarr == empty'),
-        expect(evalExp('nonemptyarr == empty', scope)).to.eventually.equal(false, 'nonemptyarr == empty'),
-        expect(evalExp('emptystr == empty', scope)).to.eventually.equal(true, 'emptystr == empty'),
-        expect(evalExp('one != empty', scope)).to.eventually.equal(true, 'one != empty'),
-        expect(evalExp('x != empty', scope)).to.eventually.equal(true, 'x != empty'),
-        expect(evalExp('undefined == blank', scope)).to.eventually.equal(true, 'undefined == blank'),
-        expect(evalExp('emptyarr == blank', scope)).to.eventually.equal(true, 'emptyarr == blank'),
-        expect(evalExp('nonemptyarr == blank', scope)).to.eventually.equal(false, 'nonemptyarr == blank'),
-        expect(evalExp('emptystr == blank', scope)).to.eventually.equal(true, 'emptystr == blank'),
-        expect(evalExp('one != blank', scope)).to.eventually.equal(true, 'one != blank'),
-        expect(evalExp('x != blank', scope)).to.eventually.equal(true, 'x != blank'),
-        expect(evalExp('x != y', scope)).to.eventually.equal(true, 'x != y'),
-        expect(evalExp('x != z', scope)).to.eventually.equal(true, 'x != z'),
-        expect(evalExp('y == empty', scope)).to.eventually.equal(true, 'y == empty'),
-        expect(evalExp('z == empty', scope)).to.eventually.equal(true, 'z == empty'),
-        expect(evalExp('null == empty', scope)).to.eventually.equal(true, 'null == empty'),
-        expect(evalExp('undefined == empty', scope)).to.eventually.equal(true, 'undefined == empty'),
-        expect(evalExp('undefined == undefined', scope)).to.eventually.equal(true, 'undefined == undefined'),
-        expect(evalExp('null == null', scope)).to.eventually.equal(true, 'null == null'),
-        expect(evalExp('empty == empty', scope)).to.eventually.equal(true, 'empty == empty'),
-        expect(evalExp('empty == blank', scope)).to.eventually.equal(true, 'empty == blank'),
-      ]);
+    it('empty comparisons', async () => {
+      expect(await evalExp('emptyarr == empty', scope)).to.equal(true, 'emptyarr == empty');
+      expect(await evalExp('nonemptyarr == empty', scope)).to.equal(false, 'nonemptyarr == empty');
+      expect(await evalExp('emptystr == empty', scope)).to.equal(true, 'emptystr == empty');
+      expect(await evalExp('one != empty', scope)).to.equal(true, 'one != empty');
+      expect(await evalExp('x != empty', scope)).to.equal(true, 'x != empty');
+      expect(await evalExp('undefined == blank', scope)).to.equal(true, 'undefined == blank');
+      expect(await evalExp('emptyarr == blank', scope)).to.equal(true, 'emptyarr == blank');
+      expect(await evalExp('nonemptyarr == blank', scope)).to.equal(false, 'nonemptyarr == blank');
+      expect(await evalExp('emptystr == blank', scope)).to.equal(true, 'emptystr == blank');
+      expect(await evalExp('one != blank', scope)).to.equal(true, 'one != blank');
+      expect(await evalExp('x != blank', scope)).to.equal(true, 'x != blank');
+      expect(await evalExp('x != y', scope)).to.equal(true, 'x != y');
+      expect(await evalExp('x != z', scope)).to.equal(true, 'x != z');
+      expect(await evalExp('y == empty', scope)).to.equal(true, 'y == empty');
+      expect(await evalExp('z == empty', scope)).to.equal(true, 'z == empty');
+      expect(await evalExp('null == empty', scope)).to.equal(true, 'null == empty');
+      expect(await evalExp('undefined == empty', scope)).to.equal(true, 'undefined == empty');
+      expect(await evalExp('undefined == undefined', scope)).to.equal(true, 'undefined == undefined');
+      expect(await evalExp('null == null', scope)).to.equal(true, 'null == null');
+      expect(await evalExp('empty == empty', scope)).to.equal(true, 'empty == empty');
+      expect(await evalExp('empty == blank', scope)).to.equal(true, 'empty == blank');
     })
   })
 
   describe('SafeObject', function() {
-    it('should evaluate safe obejcts', function() {
-      return Promise.all([
-        expect(evalExp('safeObject_1_Val_A == safeObject_2_Val_B', scope)).to.eventually.be.false,
-        expect(evalExp('safeObject_1_Val_A != safeObject_2_Val_B', scope)).to.eventually.be.true,
-        expect(evalExp('safeObject_1_Val_A == safeObject_3_Val_A', scope)).to.eventually.be.true,
-        expect(evalExp('safeObject_1_Val_A != safeObject_3_Val_A', scope)).to.eventually.be.false,
-        expect(evalExp('safeObject_1_Val_A > safeObject_3_Val_A', scope)).to.eventually.be.false,
-        expect(evalExp('safeObject_1_Val_A < safeObject_3_Val_A', scope)).to.eventually.be.false,
-        expect(evalExp('safeObject_1_Val_A >= safeObject_3_Val_A', scope)).to.eventually.be.true,
-        expect(evalExp('safeObject_1_Val_A <= safeObject_3_Val_A', scope)).to.eventually.be.true,
-        expect(evalExp('safeObject_1_Val_A and safeObject_2_Val_B', scope)).to.eventually.be.true,
-        expect(evalExp('safeObject_1_Val_A or safeObject_2_Val_B', scope)).to.eventually.be.true,
-        expect(evalExp('safeObject_1_Val_A contains safeObject_3_Val_A', scope)).to.eventually.be.true,
-      ]);
+    it('should evaluate safe obejcts', async () => {
+      expect(await evalExp('safeObject_1_Val_A == safeObject_2_Val_B', scope)).to.be.false;
+      expect(await evalExp('safeObject_1_Val_A != safeObject_2_Val_B', scope)).to.be.true;
+      expect(await evalExp('safeObject_1_Val_A == safeObject_3_Val_A', scope)).to.be.true;
+      expect(await evalExp('safeObject_1_Val_A != safeObject_3_Val_A', scope)).to.be.false;
+      expect(await evalExp('safeObject_1_Val_A > safeObject_3_Val_A', scope)).to.be.false;
+      expect(await evalExp('safeObject_1_Val_A < safeObject_3_Val_A', scope)).to.be.false;
+      expect(await evalExp('safeObject_1_Val_A >= safeObject_3_Val_A', scope)).to.be.true;
+      expect(await evalExp('safeObject_1_Val_A <= safeObject_3_Val_A', scope)).to.be.true;
+      expect(await evalExp('safeObject_1_Val_A and safeObject_2_Val_B', scope)).to.be.true;
+      expect(await evalExp('safeObject_1_Val_A or safeObject_2_Val_B', scope)).to.be.true;
+      expect(await evalExp('safeObject_1_Val_A contains safeObject_3_Val_A', scope)).to.be.true;
     });
   });
 })

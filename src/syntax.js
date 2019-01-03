@@ -58,7 +58,10 @@ export function evalValue (str, scope) {
     // console.log('evalValue isVariable', str, scope);
     return scope.get(str);
   }
-  throw new TypeError(`cannot eval '${str}' as value`)
+  // instead of throwing, just return value as-is.  this seems
+  // to be the compatible way of dealing with this situation
+  return Promise.resolve('' + str);
+  // throw new TypeError(`cannot eval '${str}' as value`)
 }
 
 export function isTruthy (value) {

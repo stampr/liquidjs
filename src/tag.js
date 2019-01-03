@@ -2,6 +2,9 @@ import * as lexical from './lexical.js';
 import * as Syntax from './syntax.js';
 import assert from './util/assert.js';
 
+// const logger = console.log.bind(null, '[TAG]');
+const logger = function(){};
+
 // hash { _: [ one, two ], some: 'value', other: 'value' }
 const COMMAND_HASH_GROUP_KEY = '_';
 
@@ -12,16 +15,6 @@ function overwrite(str, originalValue, newValue) {
   const before = str.slice(0, offsetIndex);
   const after = str.slice(endIndex);
   return before + newValue + after;
-}
-
-// ranges are evaluated as syntax.  they should probably be a new special kind of value maybe?
-function evalParameter(destination, v, scope) {
-  if (lexical.isRange(v)) {
-    destination.push(Syntax.evalExp(v, scope));
-  }
-  else {
-    destination.push(Syntax.evalValue(v, scope));
-  }
 }
 
 function hash (markup, scope) {
@@ -37,8 +30,9 @@ function hash (markup, scope) {
     markupCopy = overwrite(markupCopy, match[0], ''); // strip our match
     var k = match[1];
     var v = match[2];
+    logger('hash; arg match', { k, v });
     keys.push(k);
-    evalParameter(vals, v, scope);
+    vals.push(Syntax.evalValue(v, scope));
   }
   // markupCopy now contains all the unmatchable hash groups. these are "commands"
   // we do another match to parse out those valid values
@@ -47,8 +41,9 @@ function hash (markup, scope) {
   while ((match = lexical.valueCapture.exec(markupCopy))) {
     var k = COMMAND_HASH_GROUP_KEY;
     var v = match[0];
+    logger('hash; cmd match', { k, v });
     keys.push(k);
-    evalParameter(vals, v, scope);
+    vals.push(Syntax.evalValue(v, scope));
   }
   return Promise.all(vals).then(results => {
     results.forEach((v, i) => {
@@ -60,6 +55,7 @@ function hash (markup, scope) {
         obj[k] = v;
       }
     })
+    logger('hash; result', obj);
     return obj;
   });
 }

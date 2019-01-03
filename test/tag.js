@@ -16,6 +16,8 @@ describe('tag', function () {
         coo: 'uoo'
       },
       hashValues: [ 1, 'two', [ 'three' ] ],
+      // explicit value for hash expression tests below
+      contains: undefined,
     })
     tag.clear()
   })
@@ -53,6 +55,7 @@ describe('tag', function () {
       .then(() => expect(spy).to.have.been.called)
   })
 
+  // NOTE: expressions are not supported.  but we want to make sure their existence doesn't break things
   const __hash_args = [
     '"mixed"',
     'hashValues',
@@ -62,6 +65,10 @@ describe('tag', function () {
     'bb: arr[0]',
     'cc: 2.3',
     'dd:bar.coo',
+    'ee: (4..6)', // simple expression; hash
+    '(1..3)', // simple expression; command
+    'ff: (4..6) contains 5', // complex expression; hash
+    '(1..3) contains 2', // complex expression; command
   ];
   [
     { label: 'hash (comma separated)', separator: ',' },
@@ -112,10 +119,31 @@ describe('tag', function () {
             dd: 'uoo'
           }))
       })
-      it('should resolve non-hash literal values as commands', function () {
+      it('should not break expressions', function () {
         return tag.construct(token, []).render(scope, {})
           .then(() => expect(spy).to.have.been.calledWithMatch(scope, {
-            _: [ 'mixed', [ 1, 'two', [ 'three' ] ] ],
+            ee: '(4..6)',
+          }))
+      })
+      it('should not break complex expressions', function () {
+        return tag.construct(token, []).render(scope, {})
+          .then(() => expect(spy).to.have.been.calledWithMatch(scope, {
+            ff: '(4..6)',
+          }))
+      })
+      it('should resolve non-hash literal values as commands, including resolving simple and complex expressions', function () {
+        return tag.construct(token, []).render(scope, {})
+          .then(() => expect(spy).to.have.been.calledWithMatch(scope, {
+            _: [
+              'mixed', // __hash_args[0]
+              [ 1, 'two', [ 'three' ] ], // __hash_args[1]
+              '(1..3)', // __hash_args (1..3)
+              undefined, // because "(4..6) contains 5" is evaluated as (4..6) (literal), contains (variable), and 5 (literal).  and since contains is undefined
+              5,
+              '(1..3)', // __hash_args (1..3) contains 2
+              undefined, // same as above for "contains"
+              2,
+            ],
           }))
       })
     })

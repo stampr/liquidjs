@@ -20,7 +20,7 @@ describe('tags/assign', function () {
     var src = '{% assign foo=(1..3) %}{{foo}}'
     // return expect(liquid.parseAndRender(src))
     //   .to.eventually.equal('[1,2,3]')
-    // ^== is lib existing.  but i think this is compat match ==\/
+    // ^== is lib existing.  but i think this is compat match below ==\/
     return expect(liquid.parseAndRender(src))
       .to.eventually.equal('123')
   })
