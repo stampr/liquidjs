@@ -62,6 +62,7 @@ export default function(liquid) {
           var ctx = {}
           ctx[this.variable] = item
           ctx.forloop = {
+            _target: collection, // expose object being iterated for filters
             first: i === 0,
             index: i + 1,
             index0: i,
