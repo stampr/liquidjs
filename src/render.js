@@ -67,7 +67,7 @@ var render = {
   },
 }
 
-function stringify (val, noRecurse) {
+function stringify (val) {
   if (null === val || undefined === val || EMPTY === val) {
     return '';
   }
@@ -75,7 +75,7 @@ function stringify (val, noRecurse) {
     return val.join(''); // shopify compatible
   }
   else if (typeof val === 'object') {
-    return val.toString && !noRecurse ? stringify(val.toString(), true) : ''; // shopify compatible
+    return ''; // shopify compatible
   }
   else {
     return '' + val; // string, number, bool
