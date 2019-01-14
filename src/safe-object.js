@@ -10,6 +10,10 @@ export default class SafeObject {
       // noop. must inherit
     }
   }
+  
+  toString() {
+    return '';
+  }
 }
 
 SafeObject.COMPARISON_KEY = '_liquid_comparison_id';
