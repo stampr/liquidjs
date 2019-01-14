@@ -21,6 +21,17 @@ describe('render', function () {
       foo: {
         bar: ['a', 2]
       },
+      object_tostring: {
+        toString() {
+          return 'from object with toString';
+        }
+      },
+      object_arr_tostring: [ 'a', 'b', 'c' ],
+      object_no_tostring: {
+        valueOf() {
+          return 'not a tostring so does not appear';
+        }
+      },
     })
     filter.clear()
     tag.clear()
@@ -37,6 +48,19 @@ describe('render', function () {
     it('should render html', function () {
       return expect(render.renderTemplates([{type: 'html', value: '<p>'}], scope)).to.eventually.equal('<p>')
     })
+
+    it('should render objects to string', async () => {
+      // if object has a toString, it should be called
+      // NOTE: by default, SafeObject::toString is an empty string ''
+      const result1 = await render.renderTemplates([ Template.parseValue('object_tostring') ], scope);
+      expect(result1).to.equal('from object with toString');
+      // shopify arr toString joins arrays with an empty separator
+      const result2 = await render.renderTemplates([ Template.parseValue('object_arr_tostring') ], scope);
+      expect(result2).to.equal('abc');
+      // shopify objects without a tostring render to an empty string
+      const result3 = await render.renderTemplates([ Template.parseValue('object_no_tostring') ], scope);
+      expect(result3).to.equal('');
+    });
   })
 
   it('should eval filter with correct arguments', function () {

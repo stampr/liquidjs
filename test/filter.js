@@ -92,5 +92,4 @@ describe('filter', function () {
     expect(f.name).to.equal('foo')
     expect(f.args).to.deep.equal(['\'a\'', '"a"'])
   })
-
 })

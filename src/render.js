@@ -18,20 +18,25 @@ var render = {
             e.resolvedHTML = html
             throw e
           }
-          throw new RenderError(e, tpl)
+          if (tpl && tpl.token) {
+            throw new RenderError(e, tpl)
+          }
+          else {
+            throw new Error('Could not render because of unkown error: ' + e.message);
+          }
         })
     }).then(() => html)
 
     function renderTemplate (template) {
+      let value;
       if (template.type === 'tag') {
-        return this.renderTag(template, scope)
-          .then(partial => partial === undefined ? '' : partial)
+        value = this.renderTag(template, scope);
       } else if (template.type === 'value') {
-        return this.evalValue(template, scope)
-          .then(partial => partial === undefined ? '' : stringify(partial))
+        value = this.evalValue(template, scope);
       } else { // template.type === 'html'
-        return Promise.resolve(template.value)
+        value = Promise.resolve(template.value);
       }
+      return value.then(result => stringify(result));
     }
   },
 
@@ -49,17 +54,18 @@ var render = {
     assert(scope, 'unable to evalValue: scope undefined')
     try {
       // console.log('template.filters', template.filters)
-      return Syntax.evalExp(template.initial, scope).then(initialValue => {
-        // console.log('template.filters; initialValue', initialValue);
-        return template.filters.reduce((promise, filter) => {
-          return promise.then(prev => {
-            return filter.render(prev, scope).then(next => {
-              // console.log('evalValue', {prev,next})
-              return next;
-            });
-          })
-        }, Promise.resolve(initialValue));
-      });
+      return Syntax.evalExp(template.initial, scope)
+        .then(initialValue => {
+          // console.log('template.filters; initialValue', initialValue);
+          return template.filters.reduce((promise, filter) => {
+            return promise.then(prev => {
+              return filter.render(prev, scope).then(next => {
+                // console.log('evalValue', {prev,next})
+                return next;
+              });
+            })
+          }, Promise.resolve(initialValue));
+        });
     }
     catch (err) {
       return Promise.reject(err);
@@ -75,7 +81,13 @@ function stringify (val) {
     return val.join(''); // shopify compatible
   }
   else if (typeof val === 'object') {
-    return ''; // shopify compatible
+    if (val && typeof val.toString === 'function') {
+      const result = val.toString();
+      return result === '[object Object]' ? '' : result;
+    }
+    else {
+      return ''; // shopify compatible
+    }
   }
   else {
     return '' + val; // string, number, bool

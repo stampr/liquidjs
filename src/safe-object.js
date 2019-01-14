@@ -10,7 +10,11 @@ export default class SafeObject {
       // noop. must inherit
     }
   }
-  
+
+  valueOf() {
+    return this[SafeObject.COMPARISON_KEY];
+  }
+
   toString() {
     return '';
   }
