@@ -47,6 +47,21 @@ describe('expression', function () {
       safeObject_1_Val_A: new SafeObject('a'),
       safeObject_2_Val_B: new SafeObject('b'),
       safeObject_3_Val_A: new SafeObject('a'),
+      valueof_arr: [
+        { valueOf() { return 'one' } },
+        { valueOf() { return 'two' } },
+        { valueOf() { return 'three' } },
+      ],
+      valueof_arr_item: {
+        valueOf() {
+          return 'two';
+        }
+      },
+      valueof_arr_item_negative: {
+        valueOf() {
+          return 'four';
+        }
+      },
     });
   });
 
@@ -173,7 +188,14 @@ describe('expression', function () {
       expect(await evalExp('(1..5) contains 3', scope)).to.equal(true);
       expect(await evalExp('(1..5) contains 6', scope)).to.equal(false);
       expect(await evalExp('"<=" == "<="', scope)).to.equal(true);
-    })
+    });
+
+    it('should eval using valueOf', async () => {
+      expect(await evalExp('valueof_arr contains valueof_arr_item', scope)).to.equal(true);
+      expect(await evalExp('valueof_arr contains valueof_arr_item_negative', scope)).to.equal(false);
+      expect(await evalExp('valueof_arr contains "two"', scope)).to.equal(true);
+      expect(await evalExp('valueof_arr contains "four"', scope)).to.equal(false);
+    });
 
     describe('complex expression', function () {
       it('should support value or value', function () {

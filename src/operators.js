@@ -58,9 +58,20 @@ export default function (isTruthy, EMPTY) {
     '<=': _createOperator((l, r) => l !== null && r !== null && l <= r),
 
     'contains': _createOperator((l, r) => {
-      if (!l) return false
-      if (typeof l.indexOf !== 'function') return false
-      return l.indexOf(r) > -1
+      if (!l) return false;
+      if (typeof l.indexOf !== 'function') return false;
+      const compareValue = getCompareValue(r);
+      // substr or literal match within an array
+      const simpleComparison = l.indexOf(compareValue) > -1;
+      if (simpleComparison || !Array.isArray(l)) { // return result if string
+        return simpleComparison;
+      }
+      else if (Array.isArray(l) && l.some) { // supports some
+        return l.some(item => getCompareValue(item) === compareValue);
+      }
+      else {
+        return simpleComparison; // sanity/falllback return result of simple compare
+      }
     }),
 
     'and': _createOperator((l, r) => isTruthy(l) && isTruthy(r)),
