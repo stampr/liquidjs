@@ -113,6 +113,37 @@ describe('liquid', function () {
     const result = await engine.parseAndRender(src, context);
     expect(result).to.equal('my name:{"name":"my name"}:my rendered value');
   });
+  it('should pass objects when inside tag', async () => {
+    const src = `{% for an_object in objects %}{{ an_object.name }}:{{ an_object | _test_json }}:{{ an_object }}{% endfor %}`;
+    const context = {
+      objects: [
+        {
+          name: 'my name 1',
+          toString() {
+            return 'my rendered value 1';
+          }
+        },
+        {
+          name: 'my name 2',
+          toString() {
+            return 'my rendered value 2';
+          }
+        },
+        {
+          name: 'my name 3',
+          toString() {
+            return 'my rendered value 3';
+          }
+        },
+      ],
+    };
+    const result = await engine.parseAndRender(src, context);
+    expect(result).to.equal([
+      'my name 1:{"name":"my name 1"}:my rendered value 1',
+      'my name 2:{"name":"my name 2"}:my rendered value 2',
+      'my name 3:{"name":"my name 3"}:my rendered value 3',
+    ].join(''));
+  });
   describe('#renderFile()', function () {
     it('should render file', function () {
       return expect(engine.renderFile('/root/files/foo.html', ctx))
