@@ -22,12 +22,14 @@ describe('render', function () {
         bar: ['a', 2]
       },
       object_tostring: {
+        name: 'Object with toString',
         toString() {
           return 'from object with toString';
         }
       },
       object_arr_tostring: [ 'a', 'b', 'c' ],
       object_no_tostring: {
+        name: 'Object with no toString',
         valueOf() {
           return 'not a tostring so does not appear';
         }
@@ -60,6 +62,14 @@ describe('render', function () {
       // shopify objects without a tostring render to an empty string
       const result3 = await render.renderTemplates([ Template.parseValue('object_no_tostring') ], scope);
       expect(result3).to.equal('');
+    });
+
+    it('should pass through full objects to filter', async () => {
+      filter.register('testobject', v => JSON.stringify(v));
+      const result = await render.renderTemplates([
+        Template.parseValue('object_tostring | testobject'),
+      ], scope);
+      expect(result).to.equal(`{"name":"Object with toString"}`);
     });
   })
 
