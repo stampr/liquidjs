@@ -9,23 +9,26 @@ var render = {
   renderTemplates: function (templates, scope) {
     assert(scope, 'unable to evalTemplates: scope undefined')
 
+    // console.log('\n\nrenderTemplates', templates);
+
     var html = ''
-    return mapSeries(templates, (tpl) => {
-      return renderTemplate.call(this, tpl)
-        .then(partial => (html += partial))
-        .catch(e => {
-          if (e instanceof RenderBreakError) {
-            e.resolvedHTML = html
-            throw e
-          }
-          if (tpl && tpl.token) {
-            throw new RenderError(e, tpl)
-          }
-          else {
-            throw new Error('Could not render because of unkown error: ' + e.message);
-          }
-        })
-    }).then(() => html)
+    return mapSeries(templates, tpl => renderTemplate.call(this, tpl)
+      .then(partial => {
+        html += partial;
+      })
+      .catch(e => {
+        if (e instanceof RenderBreakError) {
+          e.resolvedHTML = html
+          throw e
+        }
+        if (tpl && tpl.token) {
+          throw new RenderError(e, tpl)
+        }
+        else {
+          throw new Error('Could not render because of unkown error: ' + e.message);
+        }
+      }))
+    .then(() => html);
 
     function renderTemplate (template) {
       let value;
@@ -53,18 +56,23 @@ var render = {
   evalValue: function (template, scope) {
     assert(scope, 'unable to evalValue: scope undefined')
     try {
-      // console.log('template.filters', template.filters)
+      // console.log('evalValue; template', template);
       return Syntax.evalExp(template.initial, scope)
         .then(initialValue => {
-          // console.log('template.filters; initialValue', initialValue);
+          // console.log('evalValue; initialValue', initialValue);
           return template.filters.reduce((promise, filter) => {
             return promise.then(prev => {
+              // console.log('evalValue; calling filter', filter, 'with', prev);
               return filter.render(prev, scope).then(next => {
-                // console.log('evalValue', {prev,next})
+                // console.log('evalValue; filter done', filter, 'result', next);
                 return next;
               });
             })
           }, Promise.resolve(initialValue));
+        })
+        .then(result => {
+          // console.log('evalValue; result', result);
+          return result;
         });
     }
     catch (err) {

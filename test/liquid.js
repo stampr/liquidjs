@@ -18,6 +18,7 @@ describe('liquid', function () {
       root: '/root/',
       extname: '.html'
     })
+    engine.registerFilter('_test_json', v => JSON.stringify(v));
     strictEngine = Liquid({
       root: '/root',
       extname: '.html',
@@ -86,12 +87,32 @@ describe('liquid', function () {
   it('should render filters', function () {
     var template = engine.parse('<p>{{arr | join: "_"}}</p>')
     return expect(engine.render(template, ctx)).to.eventually.equal('<p>-2_a</p>')
-  })
-  it('should render accessive filters', function () {
-    var src = '{% assign my_array = "apples, oranges, peaches, plums" | split: ", " %}' +
-      '{{ my_array | first }}'
-    return expect(engine.parseAndRender(src)).to.eventually.equal('apples')
-  })
+  });
+  it('should render filters', function () {
+    var template = engine.parse('<p>{{arr | join: "_"}}</p>')
+    return expect(engine.render(template, ctx)).to.eventually.equal('<p>-2_a</p>')
+  });
+  it('should pass arrays through to filters but render them with join(\'\')', async () => {
+    const src = `{{ an_array }}:{{ an_array | _test_json }}`;
+    const context = {
+      an_array: [ 'a', 'b', 'c' ],
+    };
+    const result = await engine.parseAndRender(src, context);
+    expect(result).to.equal('abc:["a","b","c"]');
+  });
+  it('should pass objects through to filters but render them with toString', async () => {
+    const src = `{{ an_object.name }}:{{ an_object | _test_json }}:{{ an_object }}`;
+    const context = {
+      an_object: {
+        name: 'my name',
+        toString() {
+          return 'my rendered value';
+        }
+      }
+    };
+    const result = await engine.parseAndRender(src, context);
+    expect(result).to.equal('my name:{"name":"my name"}:my rendered value');
+  });
   describe('#renderFile()', function () {
     it('should render file', function () {
       return expect(engine.renderFile('/root/files/foo.html', ctx))
