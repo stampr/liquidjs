@@ -31,6 +31,7 @@ var createFilters = liquid => {
     'capitalize': str => stringify(str).charAt(0).toUpperCase() + str.slice(1),
     'ceil': v => Math.ceil(v),
     'concat': (v, arg) => Array.prototype.concat.call(toCollection(v), arg),
+    compact: v => !Array.isArray(v) ? null : v.filter(v => v !== null && v !== undefined),
     'date': (v, arg) => {
       var date = v
       if (v === 'now') {
@@ -180,6 +181,20 @@ var createFilters = liquid => {
           return '';
         }
       });
+    },
+    where: (v, targetProperty, equalsValue) => {
+      return toCollection(v)
+        .filter(item => {
+          if (!item || typeof item !== 'object') {
+            return false;
+          }
+          if (equalsValue === undefined) {
+            return !!item[targetProperty];
+          }
+          else {
+            return item[targetProperty] === equalsValue;
+          }
+        });
     },
   };
   // alias

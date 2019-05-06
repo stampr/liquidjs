@@ -24,6 +24,17 @@ var ctx = {
   }, {
     category: 'bar',
   }],
+  where_posts: [
+    { author: 'bob', content: 'hello bob 1' },
+    { author: 'bob', content: 'hello bob 2' },
+    { author: 'jim', content: 'hello jim' },
+    { content: 'hello missing' },
+    { author: 'james', content: 'hello james' },
+    { author: 'bob', content: 'hello bob 3' },
+    null,
+    { author: 'tracy', content: 'hello tracy' },
+  ],
+  array_with_nulls: [ null, null, 'one', null, 'two', 'three', null, null ],
   test_null: null,
   test_undefined: undefined,
 }
@@ -114,7 +125,11 @@ describe('filters', function () {
       - tables
       - shelves
       `))
-  })
+  });
+
+  describe('compact', () => {
+    it('should remove null values from array', () => test(`{{ array_with_nulls | compact | join: ',' }}`, 'one,two,three'))
+  });
 
   describe('date', function () {
     it('should support date: %a %b %d %Y', function () {
@@ -476,5 +491,21 @@ describe('filters', function () {
       () => test('{{ "scoped" | t: var1: "world", var2: foo }}', 'hello world foo bar', engine));
     it('should work with filters',
       () => test('{{ "scoped" | t: var1: "world", var2: foo | capitalize }}', 'Hello world foo bar', engine));
-  })
-})
+  });
+
+  describe('where', function () {
+    it('should be fine with invalid input', () =>
+      test(`{{ doesnotexist | where: 'author' | size }}`, '0'));
+    it('should find all truthy values', () =>
+      test(`{{ where_posts | where: 'author' | size }}`, '6'));
+    it('should find all truthy values and map', () =>
+      test(`{{ where_posts | where: 'author' | map: 'author' | join: ',' }}`, 'bob,bob,jim,james,bob,tracy'));
+    it('should find matches', () =>
+      test(`{{ where_posts | where: 'author', 'bob' | size }}`, '3'));
+    it('should find matches and map', () =>
+      test(`{{ where_posts | where: 'author', 'bob' | map: 'author' | join: ',' }}`, 'bob,bob,bob'));
+    it('should find matches and map in conjunction with uniq', () =>
+      test(`{{ where_posts | where: 'author', 'bob' | map: 'author' | uniq | join: ',' }}`, 'bob'));
+  });
+
+});
