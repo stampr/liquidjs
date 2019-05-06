@@ -17,9 +17,12 @@ var ctx = {
   },
   func: function () {},
   posts: [{
-    category: 'foo'
+    category: 'foo',
+    author: {
+      name: 'blah',
+    }
   }, {
-    category: 'bar'
+    category: 'bar',
   }],
   test_null: null,
   test_undefined: undefined,
@@ -215,7 +218,10 @@ describe('filters', function () {
   })
 
   it('should support map', function () {
-    return test('{{posts | map: "category"}}', 'foobar')
+    return test('{{posts | map: "category"}}', 'foobar');
+  })
+  it('should support map with invalid properties', () => {
+    return test('{{posts | map: "author" | map: "name"}}', 'blah');
   })
 
   describe('minus', function () {

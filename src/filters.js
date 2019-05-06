@@ -55,7 +55,7 @@ var createFilters = liquid => {
     },
     // TODO: don't use regex
     'lstrip': v => stringify(v).replace(/^\s+/, ''),
-    'map': (arr, arg) => toCollection(arr).map(v => v[arg]),
+    'map': (arr, arg) => toCollection(arr).map(v => v && typeof v === 'object' ? v[arg] : null),
     'minus': bindFixed((v, arg) => v - arg),
     'modulo': bindFixed((v, arg) => v % arg),
     'newline_to_br': v => stringify(v).replace(/\n/g, '<br />'),
