@@ -42,8 +42,8 @@ export default function (options) {
         const nextColonIndex    = argList.indexOf(':', valueEndIndex);
         const nextColon         = nextColonIndex < 0 ? null : argList.slice(valueEndIndex, nextColonIndex + 1);
         const nextColonBelongs  = nextColon && nextColon.trim() === ':' ? true : false;
-        const endIndex          = !nextColonBelongs ? startIndex : (nextColonIndex + 1);
         const currentMatchIsKey = nextColonBelongs;
+        // const endIndex          = !nextColonBelongs ? startIndex : (nextColonIndex + 1);
         // const matchArea     = argList.slice(startIndex, endIndex - startIndex);
         // console.log('\t-> iter res', {
         //   v,

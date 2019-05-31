@@ -19,7 +19,8 @@ describe('scope', function () {
       },
       promise_parent: new Promise(resolve => process.nextTick(() => resolve({
         promise_child: new Promise(resolve => process.nextTick(() => resolve({
-          id: 'hello'
+          id: 'hello',
+          value: 'zoo',
         })))
       })))
     };
@@ -128,8 +129,12 @@ describe('scope', function () {
       return expect(scope.get('foo.foo.foo')).to.eventually.be.undefined;
     });
 
-    it('should work with promises at any depth', function () {
-      return expect(scope.get('promise_parent.promise_child.id')).to.eventually.equal('hello');
+    it('should work with promises at any depth', async () => {
+      await expect(scope.get('promise_parent.promise_child.id')).to.eventually.equal('hello');
+    });
+
+    it('should work with resolved promise as input to another property', async () => {
+      await expect(scope.get('bar[promise_parent.promise_child.value]')).to.eventually.equal('coo');
     });
   });
 
