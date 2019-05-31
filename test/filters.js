@@ -156,6 +156,9 @@ describe('filters', function () {
     it('should render object as empty string if not valid', function () {
       return test('{{ obj | date: "%Y"}}', '');
     });
+    it('should treat invalid dates as pass through', function () {
+      return test('{{ "not a valid date" | date: "%Y"}}', 'not a valid date');
+    });
   });
 
   describe('default', function () {

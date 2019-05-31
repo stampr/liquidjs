@@ -37,7 +37,12 @@ var createFilters = liquid => {
       if (v === 'now') {
         date = new Date();
       } else if (_.isString(v)) {
-        date = new Date(v);
+        try {
+          date = new Date(v);
+        }
+        catch (err) {
+          date = null;
+        }
       }
       return isValidDate(date) ? strftime(date, arg) : v;
     },
