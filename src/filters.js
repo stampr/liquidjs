@@ -99,7 +99,10 @@ var createFilters = liquid => {
     },
     'split': (v, arg) => stringify(v).split(arg),
     'strip': (v) => stringify(v).trim(),
-    'strip_html': v => stringify(v).replace(/<\/?\s*\w+\s*\/?>/g, ''),
+    'strip_html': v => {
+      const result = stringify(v).replace(/<\/?[^>]*?\/?>/gm, '').trim();
+      return result;
+    },
     'strip_newlines': v => stringify(v).replace(/[\n\r]/g, ''),
     'times': (v, arg) => v * arg,
     'truncate': (v, l, o) => {

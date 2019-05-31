@@ -36,7 +36,15 @@ var ctx = {
   ],
   array_with_nulls: [ null, null, 'one', null, 'two', 'three', null, null ],
   test_null: null,
-  test_undefined: undefined
+  test_undefined: undefined,
+  multi_line_html: `
+<p
+  style="background-image: url('blah.jpeg');"
+  class="whatever"
+  data-blah="¡™£¢∞§¶•ªº">
+    hello <b>there</b> world <i class="fa fa-world"></i> <img src="blah.jpeg" />
+</p>
+  `.trim(),
 };
 
 function test (src, dst, engine) {
@@ -370,6 +378,9 @@ describe('filters', function () {
     });
     it('should strip until empty', function () {
       return test('{{"<br/><br />< p ></p></ p >" | strip_html }}', '');
+    });
+    it('should strip attributes', function () {
+      return test('{{ multi_line_html | strip_html }}', 'hello there world');
     });
   });
 
