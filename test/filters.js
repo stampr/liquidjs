@@ -283,7 +283,13 @@ describe('filters', function () {
       () => test('{{ 183.357 | plus: 12 }}', '195.357'));
     it('should convert first arg as number', () => test('{{ "4" | plus: 2 }}', '6'));
     it('should convert both args as number', () => test('{{ "4" | plus: "2" }}', '6'));
-    it.only('should support compatible type conversion hack', () => test('{{ nil | plus: 0 }}', '0'));
+    it('should support compatible type conversion hack', async () => {
+      await test('{{ nil | plus: 0 }}', '0');
+      await test('{{ test_null | plus: 0 }}', '0');
+      await test('{{ test_undefined | plus: 0 }}', '0');
+      await test('{{ blank | plus: 0 }}', '0');
+      await test('{{ empty_arr | plus: 0 }}', '0');
+    });
   });
 
   it('should support prepend', function () {

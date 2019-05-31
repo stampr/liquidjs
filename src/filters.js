@@ -26,7 +26,7 @@ var unescapeMap = {
 
 var createFilters = liquid => {
   let filters = {
-    'abs': v => Math.abs(v),
+    'abs': v => Math.abs(numberify(v)),
     'append': (v, arg) => stringify(v) + arg,
     'capitalize': str => stringify(str).charAt(0).toUpperCase() + str.slice(1),
     'ceil': v => Math.ceil(v),
@@ -42,13 +42,12 @@ var createFilters = liquid => {
       return isValidDate(date) ? strftime(date, arg) : v;
     },
     'default': (v, arg) => isTruthy(v) ? v : arg,
-    'divided_by': (v, arg) => Math.floor(v / arg),
+    'divided_by': (v, arg) => Math.floor(numberify(v) / numberify(arg)),
     'downcase': v => stringify(v).toLowerCase(),
     'escape': escape,
-
     'escape_once': str => escape(unescape(str)),
     'first': v => toCollection(v)[0],
-    'floor': v => Math.floor(v),
+    'floor': v => Math.floor(numberify(v)),
     'join': (v, arg) => toCollection(v).join(arg),
     'last': v => {
       const collection = toCollection(v);
@@ -57,10 +56,10 @@ var createFilters = liquid => {
     // TODO: don't use regex
     'lstrip': v => stringify(v).replace(/^\s+/, ''),
     'map': (arr, arg) => toCollection(arr).map(v => v && typeof v === 'object' ? v[arg] : null),
-    'minus': bindFixed((v, arg) => v - arg),
-    'modulo': bindFixed((v, arg) => v % arg),
+    'minus': bindFixed((v, arg) => numberify(v) - numberify(arg)),
+    'modulo': bindFixed((v, arg) => numberify(v) % numberify(arg)),
     'newline_to_br': v => stringify(v).replace(/\n/g, '<br />'),
-    'plus': bindFixed((v, arg) => Number(v) + Number(arg)),
+    'plus': bindFixed((v, arg) => numberify(v) + numberify(arg)),
     'prepend': (v, arg) => arg + stringify(v),
     'remove': (v, arg) => filters.replace(v, arg, ''),
     'remove_first': (v, l) => filters.replace_first(v, l, ''),
@@ -73,8 +72,8 @@ var createFilters = liquid => {
     },
     'reverse': v => toCollection(v).reverse(),
     'round': (v, arg) => {
-      var amp = Math.pow(10, arg || 0);
-      return Math.round(v * amp, arg) / amp;
+      var amp = Math.pow(10, numberify(arg) || 0);
+      return Math.round(numberify(v) * amp, numberify(arg)) / amp;
     },
     // TODO: don't use regex
     'rstrip': str => stringify(str).replace(/\s+$/, ''),
@@ -104,7 +103,7 @@ var createFilters = liquid => {
       return result;
     },
     'strip_newlines': v => stringify(v).replace(/[\n\r]/g, ''),
-    'times': (v, arg) => v * arg,
+    'times': (v, arg) => numberify(v) * numberify(arg),
     'truncate': (v, l, o) => {
       v = stringify(v);
       o = (o === undefined) ? '...' : o;
@@ -215,6 +214,13 @@ function getMaxFixed (l, r) {
 function stringify (obj) {
   if (obj === null || undefined === obj || typeof obj === 'function') return '';
   return obj + '';
+}
+
+function numberify(value) {
+  if (typeof value === 'string') {
+    value = Number(value);
+  }
+  return isNaN(value) || typeof value !== 'number' ? 0 : value;
 }
 
 // in liquid, a collection can be both object[] and { handle: object, ... }
