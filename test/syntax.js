@@ -61,7 +61,10 @@ describe('expression', function () {
         valueOf () {
           return 'four';
         }
-      }
+      },
+      $something: 'dollar works',
+      'something?': 'question mark works',
+      'in?valid': 'nope',
     });
   });
 
@@ -69,6 +72,18 @@ describe('expression', function () {
     it('should eval literals', async () => {
       expect(await evalValue('2.3')).to.equal(2.3);
       expect(await evalValue('"foo"')).to.equal('foo');
+    });
+
+    it('should work with dollar sign variables', async () => {
+      expect(await evalValue('$something', scope)).to.equal('dollar works');
+    });
+
+    it('should work with question mark variables', async () => {
+      expect(await evalValue('something?', scope)).to.equal('question mark works');
+    });
+
+    it('should not work with variables containing question mark inside', async () => {
+      expect(await evalValue('in?valid', scope)).to.equal('in?valid'); // treated as literal
     });
 
     it('should eval variables', async () => {
