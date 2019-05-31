@@ -1,11 +1,11 @@
-import * as lexical from './lexical.js';
-import * as Syntax from './syntax.js';
-import assert from './util/assert.js';
-import * as _ from './util/underscore.js';
+import * as lexical from './lexical.js'
+import * as Syntax from './syntax.js'
+import assert from './util/assert.js'
+import * as _ from './util/underscore.js'
 
 var valueRE = new RegExp(`${lexical.value.source}`, 'g')
 
-export default function(options) {
+export default function (options) {
   options = _.assign({}, options)
   var filters = {}
 
@@ -13,16 +13,16 @@ export default function(options) {
     render: function (output, scope) {
       return Promise.all(this.args.map(arg => Syntax.evalValue(arg, scope))).then(args => {
         args.unshift(output)
-        return this.filter.apply(scope, args);
-      });
+        return this.filter.apply(scope, args)
+      })
     },
     parse: function (str) {
-      var match = lexical.filterLine.exec(str)
+      let match = lexical.filterLine.exec(str)
       assert(match, 'illegal filter: ' + str)
 
-      var name = match[1]
-      var argList = match[2] || ''
-      var filter = filters[name]
+      const name = match[1]
+      const argList = match[2] || ''
+      const filter = filters[name]
       if (typeof filter !== 'function') {
         if (options.strict_filters) {
           throw new TypeError(`undefined filter: ${name}`)
@@ -33,12 +33,12 @@ export default function(options) {
         return this
       }
 
-      var args = []
+      const args = []
       while ((match = valueRE.exec(argList.trim()))) {
-        var v = match[0]
-        var re = new RegExp(`${v}\\s*:`, 'g')
-        var keyMatch = re.exec(match.input);
-        var currentMatchIsKey = keyMatch && keyMatch.index === match.index;
+        const v = match[0]
+        const re = new RegExp(`${lexical.escape(v)}\\s*:`, 'g')
+        const keyMatch = re.exec(match.input)
+        const currentMatchIsKey = keyMatch && keyMatch.index === match.index
         currentMatchIsKey ? args.push(`'${v}'`) : args.push(v)
       }
 
