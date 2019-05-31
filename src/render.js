@@ -6,6 +6,46 @@ import assert from './util/assert.js';
 
 var render = {
 
+  // NOTE: this renders in parallel instead of series (below) but that won't work because
+  //       of the nature of templates.  each template can impact the scope for the next template
+  //       (e.g. assign) and doing this in parallel introduces a race
+  // renderTemplates: async function (templates, scope) {
+  //   assert(scope, 'unable to evalTemplates: scope undefined');
+  //   // console.log('\n\nrenderTemplates', templates);
+  //   const tasks = templates
+  //     .map(async template => {
+  //       let value = null;
+  //       try {
+  //         if (template.type === 'tag') {
+  //           value = this.renderTag(template, scope);
+  //         }
+  //         else if (template.type === 'value') {
+  //           value = this.evalValue(template, scope);
+  //         }
+  //         else { // template.type === 'html'
+  //           value = Promise.resolve(template.value);
+  //         }
+  //         const rendered = await value;
+  //         return stringify(rendered);
+  //       }
+  //       catch (err) {
+  //         if (err instanceof RenderBreakError) {
+  //           err.resolvedHTML = value;
+  //           throw err;
+  //         }
+  //         if (template && template.token) {
+  //           throw new RenderError(err, template);
+  //         }
+  //         else {
+  //           throw new Error('Could not render because of unkown error: ' + err.message);
+  //         }
+  //       }
+  //     });
+  //   const result = await Promise.all(tasks);
+  //   const html = result.join('');
+  //   return html;
+  // },
+
   renderTemplates: function (templates, scope) {
     assert(scope, 'unable to evalTemplates: scope undefined');
 
