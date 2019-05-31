@@ -12,13 +12,17 @@ export default class Locale {
 
   translate (str) {
     let tokens = this.splitPath(str);
-    return tokens.reduce((value, currentValue) => {
+    const result = tokens.reduce((value, currentValue) => {
       if (currentValue in value) {
         return value[currentValue];
       } else {
         throw new Error(`invalid translation key: "${str}"`);
       }
     }, this.translation);
+    if (typeof result !== 'string') { // make sure we're not returning this.translation or bad translation data
+      throw new Error(`invalid translation key: "${str}"`);
+    }
+    return result;
   }
 }
 

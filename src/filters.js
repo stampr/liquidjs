@@ -131,7 +131,7 @@ var createFilters = liquid => {
       let args = Array.from(arguments);
       let v = args.shift();
       let context = argsToObject(args);
-      return scope.get(LOCALE_SCOPE_KEY).then(scopeLocales => {
+      return scope.get(LOCALE_SCOPE_KEY).then(async scopeLocales => {
         let locales = [];
         if (scopeLocales && scopeLocales.length > 0) {
           if (!Array.isArray(scopeLocales)) {
@@ -174,7 +174,14 @@ var createFilters = liquid => {
                 translation = translation.other;
               }
             }
-            return liquid.parseAndRender(translation, context);
+            const result = await liquid.parseAndRender(translation, context);
+            const noEscapeSuffix = '_html';
+            if (v.slice(-noEscapeSuffix.length) === noEscapeSuffix) {
+              return result;
+            }
+            else {
+              return filters.escape(result);
+            }
           }
           // it wasn't found in any of the provided locales
           // throw new Error(`invalid translation key: "${v}"; not found in any of the provided locales`);

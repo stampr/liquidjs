@@ -20,6 +20,9 @@ export function matchRightBracket (str, begin) {
 }
 
 export function splitPath (str) {
+  if (typeof str !== 'string') {
+    return [];
+  }
   let strLen = str.length;
   let tokens = [];
   for (let cursor = 0; cursor < strLen;) {

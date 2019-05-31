@@ -497,7 +497,9 @@ describe('filters', function () {
               ]
             ]
           }
-        }
+        },
+        should_be_escaped: '<b>hello {{ var1 }}</b>',
+        should_not_be_escaped_html: '<b>hello {{ var1 }}</b>',
       }),
       defaultLocale: new Locale({
         hello: 'there',
@@ -522,6 +524,12 @@ describe('filters', function () {
       await test('{{ "not a valid translation key" | t }}', '', engine);
       await test('{{ "anything.here" | t }}', '', engine);
       await test('{{ "here.is.a.partial.but.invalid.key" | t }}', '', engine);
+    });
+    it('should escape translation values by default', async () => {
+      await test('{{ "should_be_escaped" | t: var1: "world" }}', '&lt;b&gt;hello world&lt;/b&gt;', engine);
+    });
+    it('should optionally not escape translation value if key ends with "_html"', async () => {
+      await test('{{ "should_not_be_escaped_html" | t: var1: "world" }}', '<b>hello world</b>', engine);
     });
   });
 
