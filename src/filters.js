@@ -142,6 +142,9 @@ var createFilters = liquid => {
         if (liquid.options.locale) { // add/check last
           locales.push(liquid.options.locale);
         }
+        if (liquid.options.defaultLocale) { // absolute fallback
+          locales.push(liquid.options.defaultLocale);
+        }
         if (locales.length) {
           for (let i = 0; i < locales.length; i++) {
             let locale = locales[i];
@@ -174,7 +177,9 @@ var createFilters = liquid => {
             return liquid.parseAndRender(translation, context);
           }
           // it wasn't found in any of the provided locales
-          throw new Error(`invalid translation key: "${v}"; not found in any of the provided locales`);
+          // throw new Error(`invalid translation key: "${v}"; not found in any of the provided locales`);
+          // don't error if it's not found and instead return an empty string
+          return '';
         } else {
           return '';
         }

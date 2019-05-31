@@ -38,8 +38,12 @@ var _engine = {
 
     return this;
   },
-  loadTranslation: function (translation, id) {
+  loadTranslation: function (translation, id, defaultLocale = null) {
     this.options.locale = new Locale(translation, id);
+    if (null !== defaultLocale && !(defaultLocale instanceof Locale)) {
+      throw new Error('defaultLocale must be null or instance of Locale');
+    }
+    this.options.defaultLocale = defaultLocale;
   },
   tokenize: function (html, filepath) {
     var tokens = parse(html, filepath, this.options);
@@ -153,7 +157,8 @@ export function createEngine (options) {
     strict_variables: false,
     templateProvider: null,
     beforeScopeProvides: null,
-    locale: null
+    locale: null,
+    defaultLocale: null,
   }, options);
   options.root = normalizeStringArray(options.root);
 

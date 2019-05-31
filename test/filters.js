@@ -498,7 +498,11 @@ describe('filters', function () {
             ]
           }
         }
-      })
+      }),
+      defaultLocale: new Locale({
+        hello: 'there',
+        only_in: 'default',
+      }),
     });
     it('should translate keys',
       async () => test('{{ "hello" | t }}', 'world', engine));
@@ -506,13 +510,19 @@ describe('filters', function () {
       async () => test('{{ "here.is.a[0][0].deep" | t }}', 'key', engine));
     it('should return empty string if no locale',
       async () => test('{{ "anything.here" | t }}', ''));
-    it('should throw if key is invalid', async () => {
-      return expect(engine.parseAndRender('{{ "anything.here" | t }}', {})).to.be.rejectedWith(/invalid translation key/);
-    });
     it('should pass variables',
       async () => test('{{ "scoped" | t: var1: "world", var2: foo }}', 'hello world foo bar', engine));
     it('should work with filters',
       async () => test('{{ "scoped" | t: var1: "world", var2: foo | capitalize }}', 'Hello world foo bar', engine));
+    it('should use fallback/default locale if key does not exist and provided', async () => {
+      await test('{{ "hello" | t }}', 'world', engine);
+      await test('{{ "only_in" | t }}', 'default', engine);
+    });
+    it('should not throw if key does not exist', async () => {
+      await test('{{ "not a valid translation key" | t }}', '', engine);
+      await test('{{ "anything.here" | t }}', '', engine);
+      await test('{{ "here.is.a.partial.but.invalid.key" | t }}', '', engine);
+    });
   });
 
   describe('where', function () {
