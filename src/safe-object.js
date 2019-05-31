@@ -1,5 +1,5 @@
 export default class SafeObject {
-  constructor (comparisonId) {
+  constructor(comparisonId) {
     if (undefined !== comparisonId) {
       Object.defineProperty(this, SafeObject.COMPARISON_KEY, {
         enumerable: false,
@@ -10,12 +10,12 @@ export default class SafeObject {
     }
   }
 
-  valueOf () {
+  valueOf() {
     return this[SafeObject.COMPARISON_KEY];
   }
 
-  toString () {
-    return '';
+  toString() {
+    return '' + this.valueOf();
   }
 }
 

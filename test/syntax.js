@@ -210,6 +210,8 @@ describe('expression', function () {
       expect(await evalExp('valueof_arr contains valueof_arr_item_negative', scope)).to.equal(false);
       expect(await evalExp('valueof_arr contains "two"', scope)).to.equal(true);
       expect(await evalExp('valueof_arr contains "four"', scope)).to.equal(false);
+      expect(await evalExp('safeObject_1_Val_A == "a"', scope)).to.equal(true);
+      expect(await evalExp('safeObject_1_Val_A == "b"', scope)).to.equal(false);
     });
 
     describe('complex expression', function () {

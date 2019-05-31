@@ -9,7 +9,7 @@ describe('tags/if', function () {
     one: 1,
     two: 2,
     emptyString: '',
-    emptyArray: []
+    emptyArray: [],
   };
 
   it('should throw if not closed', function () {
