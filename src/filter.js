@@ -81,6 +81,11 @@ export default function (options) {
   }
 
   return {
-    construct, register, clear
+    construct,
+    register,
+    clear,
+    get filters() {
+      return Object.assign({}, filters);
+    }
   };
 }

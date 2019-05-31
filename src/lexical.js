@@ -17,7 +17,7 @@ export const number = /-?\d+\.?\d*|\.?\d+/;
 export const bool = /true|false/;
 
 // peoperty access
-export const identifier = /[\w_\$-]+\??/;
+export const identifier = /[\w_$-]+\??/;
 export const subscript = new RegExp(`\\[(?:${quoted.source}|[\\w-\\.]+)\\]`);
 export const literal = new RegExp(`(?:${quoted.source}|${bool.source}|${number.source}|nil|null|empty|blank)`);
 export const variable = new RegExp(`${identifier.source}(?:\\.${identifier.source}|${subscript.source})*`);
