@@ -14,40 +14,39 @@ export const forbidden = [
   'undefined',
   'true',
   'false',
-  '',
+  ''
 ];
 
-export function isVariableValid(varName) {
+export function isVariableValid (varName) {
   return forbidden.indexOf((varName || '').trim().toLowerCase()) < 0;
-};
+}
 
-export function validateContextObject(ctx) {
-  if (null === ctx || undefined === ctx) return;
+export function validateContextObject (ctx) {
+  if (ctx === null || undefined === ctx) return;
   let keys = Object.keys(ctx);
   keys.forEach(v => {
     if (!isVariableValid(v)) {
       throw new Error(`invalid context variable name; "${v}" is forbidden`);
     }
   });
-};
+}
 
 var Scope = {
   getAll: function () {
     var ctx = {};
     for (var i = this.scopes.length - 1; i >= 0; i--) {
-      _.assign(ctx, this.scopes[i])
+      _.assign(ctx, this.scopes[i]);
     }
     return ctx;
   },
-  getFromContext: function(str) {
+  getFromContext: function (str) {
     return new Promise((resolve, reject) => {
       this.getPropertyByPath(this.scopes, str).then(resolve).catch(err => {
         // console.log('get -> getPropertyByPath returned err:', err.message);
         if (!/undefined variable/.test(err.message) || this.opts.strict_variables) {
           // console.log('\t-> rejecting');
           return reject(err);
-        }
-        else {
+        } else {
           // console.log('\t-> resolving undefined');
           return resolve(undefined);
         }
@@ -59,8 +58,7 @@ var Scope = {
       return this.opts.beforeScopeProvides(str, this).then(() => {
         return this.getFromContext(str);
       });
-    }
-    else {
+    } else {
       return this.getFromContext(str);
     }
   },
@@ -79,17 +77,17 @@ var Scope = {
     return this.scopes.pop();
   },
   findScopeFor: function (key) {
-    var i = this.scopes.length - 1
+    var i = this.scopes.length - 1;
     while (i >= 0 && !(key in this.scopes[i])) {
-      i--
+      i--;
     }
     if (i < 0) {
-      i = this.scopes.length - 1
+      i = this.scopes.length - 1;
     }
-    return this.scopes[i]
+    return this.scopes[i];
   },
   unshift: function (ctx) {
-    assert(ctx, `trying to push ${ctx} into scopes`)
+    assert(ctx, `trying to push ${ctx} into scopes`);
     validateContextObject(ctx);
     return this.scopes.unshift(ctx);
   },
@@ -122,89 +120,86 @@ var Scope = {
     // log = console.log.bind(console, `"${str}"`);
     let tokenProviders = [];
     let strLen = str.length;
-    for (let cursor=0; cursor < strLen;) {
+    for (let cursor = 0; cursor < strLen;) {
       // log('[loop]', str[cursor]);
+      /* eslint-disable no-case-declarations */
       switch (str[cursor]) {
-        case '[':
-          let delimiter = str[cursor + 1]
-          if (delimiters.indexOf(delimiter) > -1) { // access by quoted name: foo["bar"]
-            let nameEndIndex = str.indexOf(delimiter, cursor + 2);
-            if (nameEndIndex < 0) {
-              return Promise.reject(new AssertionError(`unbalanced ${delimiter}: "${str}"`));
-            }
-            let nameToken = str.slice(cursor + 2, nameEndIndex);
-            tokenProviders.push(Promise.resolve(nameToken));
-            cursor = nameEndIndex + 2; // the closing " and ]
-            // log('BRACKET w/delimiter',nameEndIndex, nameToken);
+      case '[':
+        let delimiter = str[cursor + 1];
+        if (delimiters.indexOf(delimiter) > -1) { // access by quoted name: foo["bar"]
+          let nameEndIndex = str.indexOf(delimiter, cursor + 2);
+          if (nameEndIndex < 0) {
+            return Promise.reject(new AssertionError(`unbalanced ${delimiter}: "${str}"`));
           }
-          else { // access by variable: foo[bar.coo]
-            let variableEndIndex = matchRightBracket(str, cursor + 1);
-            if (variableEndIndex < 0) {
-              return Promise.reject(new AssertionError(`unbalanced []: "${str}"`));
-            }
-            let variableToken = str.slice(cursor + 1, variableEndIndex);
-            if (lexical.isInteger(variableToken)) { // foo[1]
-              // log('BRACKET; number', variableToken);
-              tokenProviders.push(Promise.resolve(variableToken));
-            }
-            else {
-              // log('BRACKET; name', variableToken);
-              tokenProviders.push(this.get(variableToken));
-            }
-            cursor = variableEndIndex + 1;
+          let nameToken = str.slice(cursor + 2, nameEndIndex);
+          tokenProviders.push(Promise.resolve(nameToken));
+          cursor = nameEndIndex + 2; // the closing " and ]
+          // log('BRACKET w/delimiter',nameEndIndex, nameToken);
+        } else { // access by variable: foo[bar.coo]
+          let variableEndIndex = matchRightBracket(str, cursor + 1);
+          if (variableEndIndex < 0) {
+            return Promise.reject(new AssertionError(`unbalanced []: "${str}"`));
           }
-          break;
-        case '.': // separator: foo.bar, foo[0].bar
-          cursor++;
-          // log('DOT');
-          break;
-        default: // access by unquoted name: foo.bar
-          let nextBracketIndex    = str.indexOf('[', cursor);
-          let nextDotIndex        = str.indexOf('.', cursor);
-          let foundIndexes        = [ strLen, nextBracketIndex, nextDotIndex ].filter(index => index > -1);
-          let nextSeparator       = Math.min.apply(Math, foundIndexes);
-          let unquotedNameToken   = str.slice(cursor, nextSeparator);
-          // log('DEFAULT', {nextBracketIndex,nextDotIndex,nextSeparator,unquotedNameToken});
-          tokenProviders.push(Promise.resolve(unquotedNameToken));
-          cursor = nextSeparator;
-          break;
+          let variableToken = str.slice(cursor + 1, variableEndIndex);
+          if (lexical.isInteger(variableToken)) { // foo[1]
+            // log('BRACKET; number', variableToken);
+            tokenProviders.push(Promise.resolve(variableToken));
+          } else {
+            // log('BRACKET; name', variableToken);
+            tokenProviders.push(this.get(variableToken));
+          }
+          cursor = variableEndIndex + 1;
+        }
+        break;
+      case '.': // separator: foo.bar, foo[0].bar
+        cursor++;
+        // log('DOT');
+        break;
+      default: // access by unquoted name: foo.bar
+        let nextBracketIndex = str.indexOf('[', cursor);
+        let nextDotIndex = str.indexOf('.', cursor);
+        let foundIndexes = [ strLen, nextBracketIndex, nextDotIndex ].filter(index => index > -1);
+        let nextSeparator = Math.min.apply(Math, foundIndexes);
+        let unquotedNameToken = str.slice(cursor, nextSeparator);
+        // log('DEFAULT', {nextBracketIndex,nextDotIndex,nextSeparator,unquotedNameToken});
+        tokenProviders.push(Promise.resolve(unquotedNameToken));
+        cursor = nextSeparator;
+        break;
       }
+      /* eslint-enable no-case-declarations */
     }
     return Promise.all(tokenProviders);
-  },
-}
+  }
+};
 
-export function setPropertyByPath(obj, path, val) {
-  var paths = (path + '').replace(/\[/g, '.').replace(/\]/g, '').split('.')
+export function setPropertyByPath (obj, path, val) {
+  var paths = (path + '').replace(/\[/g, '.').replace(/\]/g, '').split('.');
   for (var i = 0; i < paths.length; i++) {
-    var key = paths[i]
+    var key = paths[i];
     if (!_.isObject(obj)) {
       // cannot set property of non-object
-      return
+      return;
     }
     // for end point
     if (i === paths.length - 1) {
-      return (obj[key] = val)
+      return (obj[key] = val);
     }
     // if path not exist
     if (undefined === obj[key]) {
-      obj[key] = {}
+      obj[key] = {};
     }
-    obj = obj[key]
+    obj = obj[key];
   }
 }
 
 export function getValueFromParent (key, value) {
-  if ('size' === key) {
+  if (key === 'size') {
     return compatibility.compatSize(value);
-  }
-  else if ('first' === key) {
+  } else if (key === 'first') {
     return compatibility.compatFirst(value);
-  }
-  else if ('last' === key) {
+  } else if (key === 'last') {
     return compatibility.compatLast(value);
-  }
-  else {
+  } else {
     if (_.isNil(value)) {
       throw new TypeError(`undefined variable: "${key}"`);
     }
@@ -214,41 +209,41 @@ export function getValueFromParent (key, value) {
 
 export function getValueFromScopes (key, scopes) {
   for (var i = scopes.length - 1; i > -1; i--) {
-    var scope = scopes[i]
+    var scope = scopes[i];
     if (scope.hasOwnProperty(key)) {
-      return scope[key]
+      return scope[key];
     }
   }
-  throw new TypeError(`undefined variable: "${key}"`)
+  throw new TypeError(`undefined variable: "${key}"`);
 }
 
 export function matchRightBracket (str, begin) {
-  var stack = 1 // count of '[' - count of ']'
+  var stack = 1; // count of '[' - count of ']'
   for (var i = begin; i < str.length; i++) {
     if (str[i] === '[') {
-      stack++
+      stack++;
     }
     if (str[i] === ']') {
-      stack--
+      stack--;
       if (stack === 0) {
-        return i
+        return i;
       }
     }
   }
-  return -1
+  return -1;
 }
 
-export function createScope(ctx, opts) {
+export function createScope (ctx, opts) {
   var defaultOptions = {
     dynamicPartials: true,
     strict_variables: false,
     strict_filters: false,
     blocks: {},
-    root: [],
-  }
-  var scope = Object.create(Scope)
-  scope.opts = _.assign(defaultOptions, opts)
+    root: []
+  };
+  var scope = Object.create(Scope);
+  scope.opts = _.assign(defaultOptions, opts);
   validateContextObject(ctx);
-  scope.scopes = [ctx || {}]
-  return scope
+  scope.scopes = [ctx || {}];
+  return scope;
 }

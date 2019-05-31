@@ -14,15 +14,15 @@ var escapeMap = {
   '<': '&lt;',
   '>': '&gt;',
   '"': '&#34;',
-  "'": '&#39;'
-}
+  '\'': '&#39;'
+};
 var unescapeMap = {
   '&amp;': '&',
   '&lt;': '<',
   '&gt;': '>',
   '&#34;': '"',
-  '&#39;': "'"
-}
+  '&#39;': '\''
+};
 
 var createFilters = liquid => {
   let filters = {
@@ -33,13 +33,13 @@ var createFilters = liquid => {
     'concat': (v, arg) => Array.prototype.concat.call(toCollection(v), arg),
     compact: v => !Array.isArray(v) ? null : v.filter(v => v !== null && v !== undefined),
     'date': (v, arg) => {
-      var date = v
+      var date = v;
       if (v === 'now') {
-        date = new Date()
+        date = new Date();
       } else if (_.isString(v)) {
-        date = new Date(v)
+        date = new Date(v);
       }
-      return isValidDate(date) ? strftime(date, arg) : v
+      return isValidDate(date) ? strftime(date, arg) : v;
     },
     'default': (v, arg) => isTruthy(v) ? v : arg,
     'divided_by': (v, arg) => Math.floor(v / arg),
@@ -73,19 +73,17 @@ var createFilters = liquid => {
     },
     'reverse': v => toCollection(v).reverse(),
     'round': (v, arg) => {
-      var amp = Math.pow(10, arg || 0)
-      return Math.round(v * amp, arg) / amp
+      var amp = Math.pow(10, arg || 0);
+      return Math.round(v * amp, arg) / amp;
     },
     // TODO: don't use regex
     'rstrip': str => stringify(str).replace(/\s+$/, ''),
     'size': v => {
       if (typeof v === 'string') {
         return v.length;
-      }
-      else if (typeof v === 'object') {
+      } else if (typeof v === 'object') {
         return toCollection(v).length;
-      }
-      else {
+      } else {
         return 0;
       }
     },
@@ -95,8 +93,7 @@ var createFilters = liquid => {
       const collection = toCollection(v);
       if (property) {
         return sortBy(collection, property);
-      }
-      else {
+      } else {
         return collection.sort();
       }
     },
@@ -106,26 +103,26 @@ var createFilters = liquid => {
     'strip_newlines': v => stringify(v).replace(/\n/g, ''),
     'times': (v, arg) => v * arg,
     'truncate': (v, l, o) => {
-      v = stringify(v)
-      o = (o === undefined) ? '...' : o
-      l = l || 16
-      if (v.length <= l) return v
-      return v.substr(0, l - o.length) + o
+      v = stringify(v);
+      o = (o === undefined) ? '...' : o;
+      l = l || 16;
+      if (v.length <= l) return v;
+      return v.substr(0, l - o.length) + o;
     },
     'truncatewords': (v, l, o) => {
-      if (o === undefined) o = '...'
-      var arr = stringify(v).split(' ')
-      var ret = arr.slice(0, l).join(' ')
-      if (arr.length > l) ret += o
-      return ret
+      if (o === undefined) o = '...';
+      var arr = stringify(v).split(' ');
+      var ret = arr.slice(0, l).join(' ');
+      if (arr.length > l) ret += o;
+      return ret;
     },
     'uniq': v => uniq(toCollection(v)),
     'upcase': str => stringify(str).toUpperCase(),
     'url_encode': v => encodeURIComponent(stringify(v)),
-    'translate': function() {
-      let scope   = this;
-      let args    = Array.from(arguments);
-      let v       = args.shift();
+    'translate': function () {
+      let scope = this;
+      let args = Array.from(arguments);
+      let v = args.shift();
       let context = argsToObject(args);
       return scope.get(LOCALE_SCOPE_KEY).then(scopeLocales => {
         let locales = [];
@@ -139,36 +136,31 @@ var createFilters = liquid => {
           locales.push(liquid.options.locale);
         }
         if (locales.length) {
-          for (let i=0; i < locales.length; i++) {
+          for (let i = 0; i < locales.length; i++) {
             let locale = locales[i];
             let translation;
             try {
               translation = locale.translate(v);
-            }
-            catch (err) {
+            } catch (err) {
               if (err.message.indexOf('invalid translation key') > -1) {
                 continue; // not found.  try next locale
-              }
-              else {
+              } else {
                 throw err;
               }
             }
-            let countExists   = 'count' in context;
-            let notNull       = null !== translation && undefined !== translation;
-            let typeIsObject  = typeof translation === 'object';
+            let countExists = 'count' in context;
+            let notNull = translation !== null && undefined !== translation;
+            let typeIsObject = typeof translation === 'object';
             if (countExists && notNull && typeIsObject) {
               let { count } = context;
               if (count === undefined) count = 0;
               if (count === 0) {
                 translation = translation.zero || translation.other;
-              }
-              else if (count === 1) {
+              } else if (count === 1) {
                 translation = translation.one || translation.other;
-              }
-              else if (count === 2) {
+              } else if (count === 2) {
                 translation = translation.two || translation.other;
-              }
-              else {
+              } else {
                 translation = translation.other;
               }
             }
@@ -176,8 +168,7 @@ var createFilters = liquid => {
           }
           // it wasn't found in any of the provided locales
           throw new Error(`invalid translation key: "${v}"; not found in any of the provided locales`);
-        }
-        else {
+        } else {
           return '';
         }
       });
@@ -190,12 +181,11 @@ var createFilters = liquid => {
           }
           if (equalsValue === undefined) {
             return !!item[targetProperty];
-          }
-          else {
+          } else {
             return item[targetProperty] === equalsValue;
           }
         });
-    },
+    }
   };
   // alias
   filters.t = filters.translate;
@@ -203,56 +193,54 @@ var createFilters = liquid => {
 };
 
 function escape (str) {
-  return stringify(str).replace(/&|<|>|"|'/g, m => escapeMap[m])
+  return stringify(str).replace(/&|<|>|"|'/g, m => escapeMap[m]);
 }
 
 function unescape (str) {
-  return stringify(str).replace(/&(amp|lt|gt|#34|#39);/g, m => unescapeMap[m])
+  return stringify(str).replace(/&(amp|lt|gt|#34|#39);/g, m => unescapeMap[m]);
 }
 
 function getFixed (v) {
-  var p = (v + '').split('.')
-  return (p.length > 1) ? p[1].length : 0
+  var p = (v + '').split('.');
+  return (p.length > 1) ? p[1].length : 0;
 }
 
 function getMaxFixed (l, r) {
-  return Math.max(getFixed(l), getFixed(r))
+  return Math.max(getFixed(l), getFixed(r));
 }
 
 function stringify (obj) {
-  if (null === obj || undefined === obj || typeof obj === 'function') return '';
-  return obj + ''
+  if (obj === null || undefined === obj || typeof obj === 'function') return '';
+  return obj + '';
 }
 
 // in liquid, a collection can be both object[] and { handle: object, ... }
 // this means when dealing with "arrays", we need to make sure things work as expected
-function toCollection(v) {
+function toCollection (v) {
   if (Array.isArray(v)) {
     return v;
-  }
-  else if (v && typeof v === 'object') {
+  } else if (v && typeof v === 'object') {
     // return Object.values(v);
     return Object.keys(v).map(key => v[key]);
-  }
-  else {
+  } else {
     return [];
   }
 }
 
 function bindFixed (cb) {
   return (l, r) => {
-    var f = getMaxFixed(l, r)
-    return cb(l, r).toFixed(f)
-  }
+    var f = getMaxFixed(l, r);
+    return cb(l, r).toFixed(f);
+  };
 }
 
 function registerAll (liquid) {
   let filters = createFilters(liquid);
-  return _.forOwn(filters, (func, name) => liquid.registerFilter(name, func))
+  return _.forOwn(filters, (func, name) => liquid.registerFilter(name, func));
 }
 
 function isValidDate (date) {
-  return date instanceof Date && !isNaN(date.getTime())
+  return date instanceof Date && !isNaN(date.getTime());
 }
 
 export default registerAll;

@@ -6,11 +6,11 @@
  * The iteratee is invoked with three arguments: (value, index, iterable).
  */
 export function anySeries (iterable, iteratee) {
-  var ret = Promise.reject(new Error('init'))
+  var ret = Promise.reject(new Error('init'));
   iterable.forEach(function (item, idx) {
-    ret = ret.catch(e => iteratee(item, idx, iterable))
-  })
-  return ret
+    ret = ret.catch(e => iteratee(item, idx, iterable));
+  });
+  return ret;
 }
 
 /*
@@ -20,14 +20,14 @@ export function anySeries (iterable, iteratee) {
  * The iteratee is invoked with three arguments: (value, index, iterable).
  */
 export function mapSeries (iterable, iteratee) {
-  var ret = Promise.resolve('init')
-  var result = []
+  var ret = Promise.resolve('init');
+  var result = [];
   iterable.forEach(function (item, idx) {
     ret = ret
       .then(() => iteratee(item, idx, iterable))
-      .then(x => result.push(x))
-  })
-  return ret.then(() => result)
+      .then(x => result.push(x));
+  });
+  return ret.then(() => result);
 }
 
 /*
@@ -41,31 +41,27 @@ export function firstSeries (iterable, iteratee, fallbackFn) {
   return iterable.reduce((promise, item) => {
     return promise.then(() => {
       if (winner) {
-        return Promise.resolve(winner)
-      }
-      else {
+        return Promise.resolve(winner);
+      } else {
         return iteratee(item).then(found => {
-          winner = found
-          return winner
+          winner = found;
+          return winner;
         }).catch(err => {
           if (err instanceof Error) {
-            throw err
-          }
-          else {
+            throw err;
+          } else {
             // noop. swallow promises rejected with non-errors
           }
-        })
+        });
       }
-    })
+    });
   }, Promise.resolve()).then(() => {
     if (undefined !== winner) {
-      return winner
+      return winner;
+    } else if (fallbackFn) {
+      return fallbackFn();
+    } else {
+      return undefined;
     }
-    else if (fallbackFn) {
-      return fallbackFn()
-    }
-    else {
-      return undefined
-    }
-  })
+  });
 }

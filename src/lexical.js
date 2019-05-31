@@ -1,7 +1,7 @@
-function EmptyVariable(){}
-EmptyVariable.prototype.toString = function() { return ''; };
-EmptyVariable.prototype.toJSON = function() { return ''; };
-EmptyVariable.prototype.valueOf = function() { return null; };
+function EmptyVariable () {}
+EmptyVariable.prototype.toString = function () { return ''; };
+EmptyVariable.prototype.toJSON = function () { return ''; };
+EmptyVariable.prototype.valueOf = function () { return null; };
 
 export const EMPTY = new EmptyVariable();
 
@@ -58,23 +58,23 @@ export const operators = [
 ];
 
 export function isInteger (str) {
-  return integerLine.test(str)
+  return integerLine.test(str);
 }
 
 export function isLiteral (str) {
-  return literalLine.test(str)
+  return literalLine.test(str);
 }
 
 export function isRange (str) {
-  return rangeLine.test(str)
+  return rangeLine.test(str);
 }
 
 export function isVariable (str) {
-  return variableLine.test(str)
+  return variableLine.test(str);
 }
 
 export function matchValue (str) {
-  return value.exec(str)
+  return value.exec(str);
 }
 
 export function parseLiteral (str) {

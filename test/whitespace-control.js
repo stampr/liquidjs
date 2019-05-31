@@ -1,13 +1,12 @@
-const chai = require('chai')
-const expect = chai.expect
+const chai = require('chai');
+const expect = chai.expect;
 const Liquid = require('../src/main.js').createEngine;
-const liquid = new Liquid()
-chai.use(require('chai-as-promised'))
+const liquid = new Liquid();
+chai.use(require('chai-as-promised'));
 
 // NOTE: this file is fragile because of the white
 // spaces.  i've been adding literal spaces via ${'  '}
 // as tests break.  .editorconfig broke some.
-
 
 const cases = [
   {
@@ -443,11 +442,11 @@ ${'        '}
       </div>
     `
   }
-]
+];
 
 describe('Whitespace Control', function () {
   cases.forEach((item, index) => it(
     item.text,
     () => expect(liquid.parseAndRender(item.text)).to.eventually.equal(item.expected, `index ${index} failed`)
-  ))
-})
+  ));
+});

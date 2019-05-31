@@ -1,7 +1,7 @@
 require('reify');
 
 global.assert = require('assert');
-global.chai   = require('chai');
-global.expect = chai.expect;
+global.chai = require('chai');
+global.expect = global.chai.expect;
 
-chai.use(require('chai-as-promised'));
+global.chai.use(require('chai-as-promised'));

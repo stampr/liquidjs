@@ -1,4 +1,4 @@
-const toStr = Object.prototype.toString
+const toStr = Object.prototype.toString;
 
 /*
  * Checks if value is classified as a String primitive or object.
@@ -6,23 +6,23 @@ const toStr = Object.prototype.toString
  * @return {Boolean} Returns true if value is a string, else false.
  */
 export function isString (value) {
-  return value instanceof String || typeof value === 'string'
+  return value instanceof String || typeof value === 'string';
 }
 
 export function isNil (value) {
-  return value === null || value === undefined
+  return value === null || value === undefined;
 }
 
 export function isArray (value) {
   // be compatible with IE 8
-  return toStr.call(value) === '[object Array]'
+  return toStr.call(value) === '[object Array]';
 }
 
 export function isError (value) {
-  var signature = Object.prototype.toString.call(value)
+  var signature = Object.prototype.toString.call(value);
   // [object XXXError]
   return signature.substr(-6, 5) === 'Error' ||
-        (typeof value.message === 'string' && typeof value.name === 'string')
+        (typeof value.message === 'string' && typeof value.name === 'string');
 }
 
 /*
@@ -34,13 +34,13 @@ export function isError (value) {
  * @return {Object} Returns object.
  */
 export function forOwn (object, iteratee) {
-  object = object || {}
+  object = object || {};
   for (var k in object) {
     if (object.hasOwnProperty(k)) {
-      if (iteratee(object[k], k, object) === false) break
+      if (iteratee(object[k], k, object) === false) break;
     }
   }
-  return object
+  return object;
 }
 
 /*
@@ -55,36 +55,36 @@ export function forOwn (object, iteratee) {
  * @return {Object} Returns object.
  */
 export function assign (object) {
-  object = isObject(object) ? object : {}
-  var srcs = Array.prototype.slice.call(arguments, 1)
+  object = isObject(object) ? object : {};
+  var srcs = Array.prototype.slice.call(arguments, 1);
   srcs.forEach(function (src) {
-    _assignBinary(object, src)
-  })
-  return object
+    _assignBinary(object, src);
+  });
+  return object;
 }
 
 export function _assignBinary (dst, src) {
   forOwn(src, function (v, k) {
-    dst[k] = v
-  })
-  return dst
+    dst[k] = v;
+  });
+  return dst;
 }
 
 export function last (arr) {
-  return arr[arr.length - 1]
+  return arr[arr.length - 1];
 }
 
 export function uniq (arr) {
-  var u = {}
-  var a = []
+  var u = {};
+  var a = [];
   for (var i = 0, l = arr.length; i < l; ++i) {
     if (u.hasOwnProperty(arr[i])) {
-      continue
+      continue;
     }
-    a.push(arr[i])
-    u[arr[i]] = 1
+    a.push(arr[i]);
+    u[arr[i]] = 1;
   }
-  return a
+  return a;
 }
 
 /*
@@ -94,8 +94,8 @@ export function uniq (arr) {
  * @return {Boolean} Returns true if value is an object, else false.
  */
 export function isObject (value) {
-  var type = typeof value
-  return value != null && (type === 'object' || type === 'function')
+  var type = typeof value;
+  return value != null && (type === 'object' || type === 'function');
 }
 
 /*
@@ -108,14 +108,14 @@ export function isObject (value) {
  */
 export function range (start, stop, step) {
   if (arguments.length === 1) {
-    stop = start
-    start = 0
+    stop = start;
+    start = 0;
   }
-  step = step || 1
+  step = step || 1;
 
-  var arr = []
+  var arr = [];
   for (var i = start; i < stop; i += step) {
-    arr.push(i)
+    arr.push(i);
   }
-  return arr
+  return arr;
 }

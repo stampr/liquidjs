@@ -1,22 +1,21 @@
 import { splitPath } from './util/object-path.js';
 
 export default class Locale {
-  constructor(translation, id) {
+  constructor (translation, id) {
     this.translation = translation;
     this.id = id;
   }
 
-  splitPath(str) {
+  splitPath (str) {
     return splitPath(str);
   }
 
-  translate(str) {
+  translate (str) {
     let tokens = this.splitPath(str);
     return tokens.reduce((value, currentValue) => {
       if (currentValue in value) {
         return value[currentValue];
-      }
-      else {
+      } else {
         throw new Error(`invalid translation key: "${str}"`);
       }
     }, this.translation);

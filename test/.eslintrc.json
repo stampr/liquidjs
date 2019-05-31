@@ -3,6 +3,8 @@
     "no-unused-expressions": "off"
   },
   "env": {
+    "node": true,
+    "es6": true,
     "mocha": true
   },
   "plugins": [

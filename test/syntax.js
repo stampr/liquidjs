@@ -1,17 +1,17 @@
-const chai = require('chai')
-const expect = chai.expect
-var syntax = require('../src/syntax.js')
-var createScope = require('../src/scope.js').createScope
+const chai = require('chai');
+const expect = chai.expect;
+var syntax = require('../src/syntax.js');
+var createScope = require('../src/scope.js').createScope;
 var SafeObject = require('../src/safe-object.js').default;
 
-chai.use(require('chai-as-promised'))
+chai.use(require('chai-as-promised'));
 
-var evalExp = syntax.evalExp
-var evalValue = syntax.evalValue
-var isTruthy = syntax.isTruthy
+var evalExp = syntax.evalExp;
+var evalValue = syntax.evalValue;
+var isTruthy = syntax.isTruthy;
 
 describe('expression', function () {
-  var scope
+  var scope;
 
   beforeEach(function () {
     scope = createScope({
@@ -21,16 +21,16 @@ describe('expression', function () {
       dotnotation: {
         size: 'hello:size',
         first: 'hello:first',
-        last: 'hello:last',
+        last: 'hello:last'
       },
       dotnotation2: {
         arr: [
           {
-            value: 'hello:first',
+            value: 'hello:first'
           },
           {
-            value: 'hello:last',
-          },
+            value: 'hello:last'
+          }
         ]
       },
       one: 1,
@@ -38,8 +38,8 @@ describe('expression', function () {
       emptystr: '',
       emptyarr: [],
       emptyobj: {},
-      nonemptyarr: ['hello','world'],
-      nonemptyobj: {one:'hello',two:'world'},
+      nonemptyarr: ['hello', 'world'],
+      nonemptyobj: {one: 'hello', two: 'world'},
       nonemptystr: '123',
       x: 'XXX',
       y: undefined,
@@ -48,20 +48,20 @@ describe('expression', function () {
       safeObject_2_Val_B: new SafeObject('b'),
       safeObject_3_Val_A: new SafeObject('a'),
       valueof_arr: [
-        { valueOf() { return 'one' } },
-        { valueOf() { return 'two' } },
-        { valueOf() { return 'three' } },
+        { valueOf () { return 'one'; } },
+        { valueOf () { return 'two'; } },
+        { valueOf () { return 'three'; } }
       ],
       valueof_arr_item: {
-        valueOf() {
+        valueOf () {
           return 'two';
         }
       },
       valueof_arr_item_negative: {
-        valueOf() {
+        valueOf () {
           return 'four';
         }
-      },
+      }
     });
   });
 
@@ -69,22 +69,22 @@ describe('expression', function () {
     it('should eval literals', async () => {
       expect(await evalValue('2.3')).to.equal(2.3);
       expect(await evalValue('"foo"')).to.equal('foo');
-    })
+    });
 
     it('should eval variables', async () => {
       expect(await evalValue('23', scope)).to.equal(23);
       expect(await evalValue('one', scope)).to.equal(1);
       expect(await evalValue('x', scope)).to.equal('XXX');
-    })
+    });
 
     // NOTE: this is different in compat mode vs. upstream liquidjs.  in upstream this throws
     it('should not throw if not valid', async () => {
       const result = await evalValue('===');
       expect(result).to.equal('===');
-    })
+    });
 
-    describe('dot notation methods', function() {
-      describe('size', function() {
+    describe('dot notation methods', function () {
+      describe('size', function () {
         it('should not match variables', function () {
           return expect(evalValue('size', scope)).to.eventually.equal('hello:size');
         });
@@ -104,7 +104,7 @@ describe('expression', function () {
           return expect(evalValue('y.size', scope)).to.eventually.equal(0);
         });
       });
-      describe('first', function() {
+      describe('first', function () {
         it('should not match variables', function () {
           return expect(evalValue('first', scope)).to.eventually.equal('hello:first');
         });
@@ -123,11 +123,11 @@ describe('expression', function () {
         it('should support undefined', function () {
           return expect(evalValue('y.first', scope)).to.eventually.equal(null);
         });
-        it('should work anywhere in the object path', function() {
+        it('should work anywhere in the object path', function () {
           return expect(evalValue('dotnotation2.arr.first.value', scope)).to.eventually.equal('hello:first');
         });
       });
-      describe('last', function() {
+      describe('last', function () {
         it('should not match variables', function () {
           return expect(evalValue('last', scope)).to.eventually.equal('hello:last');
         });
@@ -146,12 +146,12 @@ describe('expression', function () {
         it('should support undefined', function () {
           return expect(evalValue('y.last', scope)).to.eventually.equal(null);
         });
-        it('should work anywhere in the object path', function() {
+        it('should work anywhere in the object path', function () {
           return expect(evalValue('dotnotation2.arr.last.value', scope)).to.eventually.equal('hello:last');
         });
       });
     });
-  })
+  });
 
   describe('.isTruthy()', function () {
     it('should return truthy', () => {
@@ -167,14 +167,14 @@ describe('expression', function () {
       expect(isTruthy([1])).to.equal(true, `[1]`);
       expect(isTruthy([])).to.equal(true, `[]`);
     });
-  })
+  });
 
   describe('.evalExp()', function () {
     it('should throw when scope undefined', function () {
       expect(function () {
-        evalExp('')
-      }).to.throw(/scope undefined/)
-    })
+        evalExp('');
+      }).to.throw(/scope undefined/);
+    });
 
     it('should eval simple expression', async () => {
       expect(await evalExp('1<2', scope)).to.equal(true);
@@ -199,23 +199,23 @@ describe('expression', function () {
 
     describe('complex expression', function () {
       it('should support value or value', function () {
-        return expect(evalExp('false or true', scope)).to.eventually.equal(true)
-      })
+        return expect(evalExp('false or true', scope)).to.eventually.equal(true);
+      });
       it('should support < and contains', function () {
-        return expect(evalExp('1<2 and x contains "x"', scope)).to.eventually.equal(false)
-      })
+        return expect(evalExp('1<2 and x contains "x"', scope)).to.eventually.equal(false);
+      });
       it('should support < or contains', function () {
-        return expect(evalExp('1<2 or x contains "x"', scope)).to.eventually.equal(true)
-      })
+        return expect(evalExp('1<2 or x contains "x"', scope)).to.eventually.equal(true);
+      });
       it('should support value and !=', function () {
-        return expect(evalExp('emptystr and emptystr != ""', scope)).to.eventually.equal(false)
-      })
-    })
+        return expect(evalExp('emptystr and emptystr != ""', scope)).to.eventually.equal(false);
+      });
+    });
 
     it('should eval range expression', async () => {
       expect(await evalExp('(2..4)', scope)).to.deep.equal([2, 3, 4]);
       expect(await evalExp('(two..4)', scope)).to.deep.equal([2, 3, 4]);
-    })
+    });
 
     it('empty comparisons', async () => {
       expect(await evalExp('emptyarr == empty', scope)).to.equal(true, 'emptyarr == empty');
@@ -239,10 +239,10 @@ describe('expression', function () {
       expect(await evalExp('null == null', scope)).to.equal(true, 'null == null');
       expect(await evalExp('empty == empty', scope)).to.equal(true, 'empty == empty');
       expect(await evalExp('empty == blank', scope)).to.equal(true, 'empty == blank');
-    })
-  })
+    });
+  });
 
-  describe('SafeObject', function() {
+  describe('SafeObject', function () {
     it('should evaluate safe obejcts', async () => {
       expect(await evalExp('safeObject_1_Val_A == safeObject_2_Val_B', scope)).to.be.false;
       expect(await evalExp('safeObject_1_Val_A != safeObject_2_Val_B', scope)).to.be.true;
@@ -257,4 +257,4 @@ describe('expression', function () {
       expect(await evalExp('safeObject_1_Val_A contains safeObject_3_Val_A', scope)).to.be.true;
     });
   });
-})
+});

@@ -25,20 +25,20 @@ export { Locale, lexical, Syntax, Errors, argsToObject, SafeObject };
 var _engine = {
   init: function (tag, filter, options) {
     if (options.cache) {
-      this.cache = {}
+      this.cache = {};
     }
-    this.options = options
-    this.tag = tag
-    this.filter = filter
-    this.parser = Parser(tag, filter)
-    this.renderer = Render()
+    this.options = options;
+    this.tag = tag;
+    this.filter = filter;
+    this.parser = Parser(tag, filter);
+    this.renderer = Render();
 
-    tags(this)
-    filters(this)
+    tags(this);
+    filters(this);
 
-    return this
+    return this;
   },
-  loadTranslation: function(translation, id) {
+  loadTranslation: function (translation, id) {
     this.options.locale = new Locale(translation, id);
   },
   tokenize: function (html, filepath) {
@@ -47,42 +47,42 @@ var _engine = {
   },
   parse: function (html, filepath) {
     var tokens = this.tokenize(html, filepath);
-    return this.parser.parse(tokens)
+    return this.parser.parse(tokens);
   },
   render: function (tpl, ctx, opts) {
-    opts = _.assign({}, this.options, opts)
-    var scope = createScope(ctx, opts)
-    return this.renderer.renderTemplates(tpl, scope)
+    opts = _.assign({}, this.options, opts);
+    var scope = createScope(ctx, opts);
+    return this.renderer.renderTemplates(tpl, scope);
   },
   parseAndRender: function (html, ctx, opts) {
     return Promise.resolve()
       .then(() => this.parse(html))
-      .then(tpl => this.render(tpl, ctx, opts))
+      .then(tpl => this.render(tpl, ctx, opts));
   },
   renderFile: function (filepath, ctx, opts) {
-    opts = _.assign({}, opts)
+    opts = _.assign({}, opts);
     return this.getTemplate(filepath, opts.root)
-      .then(templates => this.render(templates, ctx, opts))
+      .then(templates => this.render(templates, ctx, opts));
   },
   evalValue: function (str, scope) {
-    var tpl = this.parser.parseValue(str.trim())
-    return this.renderer.evalValue(tpl, scope)
+    var tpl = this.parser.parseValue(str.trim());
+    return this.renderer.evalValue(tpl, scope);
   },
   registerFilter: function (name, filter) {
-    return this.filter.register(name, filter)
+    return this.filter.register(name, filter);
   },
   registerTag: function (name, tag) {
-    return this.tag.register(name, tag)
+    return this.tag.register(name, tag);
   },
   lookup: function (filepath, root) {
-    root = this.options.root.concat(root || [])
-    root = _.uniq(root)
-    var paths = root.map(root => path.resolve(root, filepath))
+    root = this.options.root.concat(root || []);
+    root = _.uniq(root);
+    var paths = root.map(root => path.resolve(root, filepath));
     return anySeries(paths, path => statFileAsync(path).then(() => path))
       .catch((e) => {
-        e.message = `${e.code}: Failed to lookup ${filepath} in: ${root}`
-        throw e
-      })
+        e.message = `${e.code}: Failed to lookup ${filepath} in: ${root}`;
+        throw e;
+      });
   },
   getTemplate: function (filepath, root) {
     if (this.options.templateProvider) {
@@ -93,53 +93,52 @@ var _engine = {
         }
         return tpl;
       });
-    }
-    else {
+    } else {
       return this.getTemplateFromFile(filepath, root);
     }
   },
   getTemplateFromFile: function (filepath, root) {
     if (!path.extname(filepath)) {
-      filepath += this.options.extname
+      filepath += this.options.extname;
     }
     return this
       .lookup(filepath, root)
       .then(filepath => {
         if (this.options.cache) {
-          var tpl = this.cache[filepath]
+          var tpl = this.cache[filepath];
           if (tpl) {
-            return Promise.resolve(tpl)
+            return Promise.resolve(tpl);
           }
           return readFileAsync(filepath)
             .then(str => this.parse(str))
-            .then(tpl => (this.cache[filepath] = tpl))
+            .then(tpl => (this.cache[filepath] = tpl));
         } else {
           return readFileAsync(filepath)
-            .then(str => this.parse(str, filepath))
+            .then(str => this.parse(str, filepath));
         }
-      })
+      });
   },
   express: function (opts) {
-    opts = opts || {}
-    var self = this
+    opts = opts || {};
+    var self = this;
     return function (filePath, ctx, callback) {
       assert(Array.isArray(this.root) || _.isString(this.root),
-        'illegal views root, are you using express.js?')
-      opts.root = this.root
+        'illegal views root, are you using express.js?');
+      opts.root = this.root;
       self.renderFile(filePath, ctx, opts)
         .then(html => callback(null, html))
-        .catch(e => callback(e))
-    }
+        .catch(e => callback(e));
+    };
   }
-}
+};
 
 function normalizeStringArray (value) {
-  if (Array.isArray(value)) return value
-  if (_.isString(value)) return [value]
-  return []
+  if (Array.isArray(value)) return value;
+  if (_.isString(value)) return [value];
+  return [];
 }
 
-export function createEngine(options) {
+export function createEngine (options) {
   options = _.assign({
     root: ['.'],
     cache: false,
@@ -154,12 +153,11 @@ export function createEngine(options) {
     strict_variables: false,
     templateProvider: null,
     beforeScopeProvides: null,
-    locale: null,
-  }, options)
-  options.root = normalizeStringArray(options.root)
+    locale: null
+  }, options);
+  options.root = normalizeStringArray(options.root);
 
-  var engine = Object.create(_engine)
-  engine.init(Tag(), Filter(options), options)
-  return engine
+  var engine = Object.create(_engine);
+  engine.init(Tag(), Filter(options), options);
+  return engine;
 }
-

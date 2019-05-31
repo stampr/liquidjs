@@ -1,24 +1,24 @@
-const chai = require('chai')
-const expect = chai.expect
+const chai = require('chai');
+const expect = chai.expect;
 const Liquid = require('../../src/main.js').createEngine;
-chai.use(require('chai-as-promised'))
+chai.use(require('chai-as-promised'));
 
 describe('template provider', function () {
   var engine;
   var ctx = {
-    hello: ' and ',
+    hello: ' and '
   };
   before(function () {
     engine = Liquid({
-      templateProvider(filepath) {
+      templateProvider (filepath) {
         return new Promise((resolve, reject) => {
           switch (filepath) {
-            case 'simple':
-              return resolve(`before{{hello}}after`);
-            case 'nest':
-              return resolve(`this is some content: {% include 'simple' %}`);
-            default:
-              return reject(new Error('invalid'));
+          case 'simple':
+            return resolve(`before{{hello}}after`);
+          case 'nest':
+            return resolve(`this is some content: {% include 'simple' %}`);
+          default:
+            return reject(new Error('invalid'));
           }
         });
       }
@@ -37,4 +37,4 @@ describe('template provider', function () {
       return engine.render(template, ctx);
     })).to.eventually.equal('this is some content: before and after');
   });
-})
+});

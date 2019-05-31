@@ -1,15 +1,15 @@
 const Liquid = require('../../src/main.js').createEngine;
-const chai = require('chai')
-const expect = chai.expect
-chai.use(require('chai-as-promised'))
+const chai = require('chai');
+const expect = chai.expect;
+chai.use(require('chai-as-promised'));
 
 describe('tags/for', function () {
-  var liquid, ctx
+  var liquid, ctx;
   before(function () {
-    liquid = Liquid()
+    liquid = Liquid();
     liquid.registerTag('throwingTag', {
-      render: function () { throw new Error('intended render error') }
-    })
+      render: function () { throw new Error('intended render error'); }
+    });
     ctx = {
       one: 1,
       // eslint-disable-next-line
@@ -19,86 +19,86 @@ describe('tags/for', function () {
       obj: {foo: 'bar', coo: 'haa'},
       alpha: ['a', 'b', 'c'],
       emptyArray: [],
-      collections: new Promise(resolve => process.nextTick(() => resolve([ { id: 'a' }, { id: 'b' }, { id: 'c' } ]))),
-    }
-  })
+      collections: new Promise(resolve => process.nextTick(() => resolve([ { id: 'a' }, { id: 'b' }, { id: 'c' } ])))
+    };
+  });
   it('should support array', function () {
-    var src = '{%for c in alpha%}{{c}}{%endfor%}'
+    var src = '{%for c in alpha%}{{c}}{%endfor%}';
     return expect(liquid.parseAndRender(src, ctx))
-      .to.eventually.equal('abc')
-  })
+      .to.eventually.equal('abc');
+  });
 
   it('should support object', function () {
-    var src = '{%for item in obj%}{{item}},{%else%}b{%endfor%}'
+    var src = '{%for item in obj%}{{item}},{%else%}b{%endfor%}';
     return expect(liquid.parseAndRender(src, ctx))
-      .to.eventually.equal('bar,haa,')
-  })
+      .to.eventually.equal('bar,haa,');
+  });
 
   describe('scope', function () {
     it('should read super scope', function () {
-      var src = '{%for a in (1..2)%}{{num}}{%endfor%}'
+      var src = '{%for a in (1..2)%}{{num}}{%endfor%}';
       return expect(liquid.parseAndRender(src, {num: 1}))
-        .to.eventually.equal('11')
-    })
+        .to.eventually.equal('11');
+    });
     it('should write super scope', function () {
-      var src = '{%for a in (1..2)%}{{num}}{%assign num = 2%}{%endfor%}'
+      var src = '{%for a in (1..2)%}{{num}}{%assign num = 2%}{%endfor%}';
       return expect(liquid.parseAndRender(src, {num: 1}))
-        .to.eventually.equal('12')
-    })
-  })
+        .to.eventually.equal('12');
+    });
+  });
 
   describe('illegal', function () {
     it('should reject when for not closed', function () {
-      var src = '{%for c in alpha%}{{c}}'
+      var src = '{%for c in alpha%}{{c}}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.be.rejectedWith(/tag .* not closed/)
-    })
+        .to.be.rejectedWith(/tag .* not closed/);
+    });
 
     it('should reject when inner templates rejected', function () {
-      var src = '{%for c in alpha%}{%throwingTag%}{%endfor%}'
+      var src = '{%for c in alpha%}{%throwingTag%}{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.be.rejectedWith(/intended render error/)
-    })
-  })
+        .to.be.rejectedWith(/intended render error/);
+    });
+  });
 
   describe('else', function () {
     it('should goto else for empty array', function () {
-      var src = '{%for c in emptyArray%}a{%else%}b{%endfor%}'
+      var src = '{%for c in emptyArray%}a{%else%}b{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('b')
-    })
+        .to.eventually.equal('b');
+    });
 
     it('should treat non-empty string as one single element', function () {
-      var src = '{%for c in "abc"%}x{{c}}{%else%}y{%endfor%}'
+      var src = '{%for c in "abc"%}x{{c}}{%else%}y{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('xabc')
-    })
+        .to.eventually.equal('xabc');
+    });
 
     it('should goto else for empty string', function () {
-      var src = '{%for c in ""%}a{%else%}b{%endfor%}'
+      var src = '{%for c in ""%}a{%else%}b{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('b')
-    })
+        .to.eventually.equal('b');
+    });
 
     it('should goto else for empty string object', function () {
       // it should be false although `new String` is none-conform
-      var src = '{%for c in strObj%}a{%else%}b{%endfor%}'
+      var src = '{%for c in strObj%}a{%else%}b{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('b')
-    })
+        .to.eventually.equal('b');
+    });
 
     it('should goto else for empty object', function () {
-      var src = '{%for c in emptyObj%}a{%else%}b{%endfor%}'
+      var src = '{%for c in emptyObj%}a{%else%}b{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('b')
-    })
+        .to.eventually.equal('b');
+    });
 
     it('should goto else for null-prototyped object', function () {
-      var src = '{%for c in nullProtoObj%}a{%else%}b{%endfor%}'
+      var src = '{%for c in nullProtoObj%}a{%else%}b{%endfor%}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('b')
-    })
-  })
+        .to.eventually.equal('b');
+    });
+  });
 
   it('should support for with forloop', function () {
     var src = '{%for c in alpha%}' +
@@ -106,66 +106,66 @@ describe('tags/for', function () {
             '{{forloop.last}}.{{forloop.length}}.' +
             '{{forloop.rindex}}.{{forloop.rindex0}}' +
             '{{c}}\n' +
-            '{%endfor%}'
+            '{%endfor%}';
     var dst = 'true.1.0.false.3.3.2a\n' +
             'false.2.1.false.3.2.1b\n' +
-            'false.3.2.true.3.1.0c\n'
+            'false.3.2.true.3.1.0c\n';
     return expect(liquid.parseAndRender(src, ctx))
-      .to.eventually.equal(dst)
-  })
+      .to.eventually.equal(dst);
+  });
 
   it('should support for with continue', function () {
     var src = '{% for i in (1..5) %}' +
             '{{i}}{% continue %}after' +
-            '{% endfor %}'
+            '{% endfor %}';
     return expect(liquid.parseAndRender(src, ctx))
-      .to.eventually.equal('12345')
-  })
+      .to.eventually.equal('12345');
+  });
   it('should support for with break', function () {
     var src = '{% for i in (one..5) %}' +
       '{% if i == 4 %}{% break %}{% endif %}' +
       '{{ i }}' +
-      '{% endfor %}'
+      '{% endfor %}';
     return expect(liquid.parseAndRender(src, ctx))
-      .to.eventually.equal('123')
-  })
+      .to.eventually.equal('123');
+  });
 
   describe('limit', function () {
     it('should support for with limit', function () {
-      var src = '{% for i in (1..5) limit:2 %}{{ i }}{% endfor %}'
+      var src = '{% for i in (1..5) limit:2 %}{{ i }}{% endfor %}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('12')
-    })
+        .to.eventually.equal('12');
+    });
     it('should support for with limit and offset', function () {
-      var src = '{% for i in (1..10) limit:2 offset:5%}{{ i }}{% endfor %}'
+      var src = '{% for i in (1..10) limit:2 offset:5%}{{ i }}{% endfor %}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('67')
-    })
-  })
+        .to.eventually.equal('67');
+    });
+  });
 
   describe('reverse', function () {
     it('should support for reversed in the last position', function () {
-      var src = '{% for i in (1..5) limit:2 reversed %}{{ i }}{% endfor %}'
+      var src = '{% for i in (1..5) limit:2 reversed %}{{ i }}{% endfor %}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('21')
-    })
+        .to.eventually.equal('21');
+    });
 
     it('should support for reversed in the first position', function () {
-      var src = '{% for i in (1..5) reversed limit:2 %}{{ i }}{% endfor %}'
+      var src = '{% for i in (1..5) reversed limit:2 %}{{ i }}{% endfor %}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('21')
-    })
+        .to.eventually.equal('21');
+    });
 
     it('should support for reversed in the middle position', function () {
-      var src = '{% for i in (1..5) offset:2 reversed limit:4 %}{{ i }}{% endfor %}'
+      var src = '{% for i in (1..5) offset:2 reversed limit:4 %}{{ i }}{% endfor %}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('543')
-    })
+        .to.eventually.equal('543');
+    });
 
     it('should support collections returned from a promise', function () {
-      var src = '{% for collection in collections %}{{ collection.id }}.{% endfor %}'
+      var src = '{% for collection in collections %}{{ collection.id }}.{% endfor %}';
       return expect(liquid.parseAndRender(src, ctx))
-        .to.eventually.equal('a.b.c.')
-    })
-  })
-})
+        .to.eventually.equal('a.b.c.');
+    });
+  });
+});

@@ -9,32 +9,32 @@ const re = new RegExp(`^(${lexical.identifier.source})\\s+in\\s+` +
     `(${lexical.value.source})` +
     `(?:\\s+${lexical.hash.source})*` +
     `(?:\\s+(reversed))?` +
-    `(?:\\s+${lexical.hash.source})*$`)
+    `(?:\\s+${lexical.hash.source})*$`);
 
-export default function(liquid) {
+export default function (liquid) {
   liquid.registerTag('for', {
 
     parse: function (tagToken, remainTokens) {
-      var match = re.exec(tagToken.args)
-      assert(match, `illegal tag: ${tagToken.raw}`)
-      this.variable = match[1]
-      this.collection = match[2]
-      this.reversed = !!match[3]
+      var match = re.exec(tagToken.args);
+      assert(match, `illegal tag: ${tagToken.raw}`);
+      this.variable = match[1];
+      this.collection = match[2];
+      this.reversed = !!match[3];
 
-      this.templates = []
-      this.elseTemplates = []
+      this.templates = [];
+      this.elseTemplates = [];
 
-      var p
+      var p;
       var stream = liquid.parser.parseStream(remainTokens)
         .on('start', () => (p = this.templates))
         .on('tag:else', () => (p = this.elseTemplates))
         .on('tag:endfor', () => stream.stop())
         .on('template', tpl => p.push(tpl))
         .on('end', () => {
-          throw new Error(`tag ${tagToken.raw} not closed`)
-        })
+          throw new Error(`tag ${tagToken.raw} not closed`);
+        });
 
-      stream.start()
+      stream.start();
     },
 
     render: function (scope, hash) {
@@ -42,25 +42,25 @@ export default function(liquid) {
         collection = collection || [];
         if (!Array.isArray(collection)) {
           if (_.isString(collection) && collection.length > 0) {
-            collection = [collection]
+            collection = [collection];
           } else if (_.isObject(collection)) {
-            collection = Object.keys(collection).map(key => collection[key])
+            collection = Object.keys(collection).map(key => collection[key]);
           }
         }
         if (!Array.isArray(collection) || !collection.length) {
-          return liquid.renderer.renderTemplates(this.elseTemplates, scope)
+          return liquid.renderer.renderTemplates(this.elseTemplates, scope);
         }
 
-        var length = collection.length
-        var offset = hash.offset || 0
-        var limit = (hash.limit === undefined) ? collection.length : hash.limit
+        var length = collection.length;
+        var offset = hash.offset || 0;
+        var limit = (hash.limit === undefined) ? collection.length : hash.limit;
 
-        collection = collection.slice(offset, offset + limit)
-        if (this.reversed) collection.reverse()
+        collection = collection.slice(offset, offset + limit);
+        if (this.reversed) collection.reverse();
 
         var contexts = collection.map((item, i) => {
-          var ctx = {}
-          ctx[this.variable] = item
+          var ctx = {};
+          ctx[this.variable] = item;
           ctx.forloop = {
             _target: collection, // expose object being iterated for filters
             first: i === 0,
@@ -70,11 +70,11 @@ export default function(liquid) {
             length: length,
             rindex: length - i,
             rindex0: length - i - 1
-          }
-          return ctx
-        })
+          };
+          return ctx;
+        });
 
-        var html = ''
+        var html = '';
         return mapSeries(contexts, (context) => {
           return Promise.resolve()
             .then(() => scope.push(context))
@@ -82,19 +82,19 @@ export default function(liquid) {
             .then(partial => (html += partial))
             .catch(e => {
               if (e instanceof RenderBreakError) {
-                html += e.resolvedHTML
-                if (e.message === 'continue') return
+                html += e.resolvedHTML;
+                if (e.message === 'continue') return;
               }
-              throw e
+              throw e;
             })
-            .then(() => scope.pop())
+            .then(() => scope.pop());
         }).catch((e) => {
           if (e instanceof RenderBreakError && e.message === 'break') {
-            return
+            return;
           }
-          throw e
-        }).then(() => html)
-      })
+          throw e;
+        }).then(() => html);
+      });
     }
-  })
+  });
 }

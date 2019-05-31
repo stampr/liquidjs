@@ -1,33 +1,33 @@
-import tag_assign from './assign.js';
-import tag_capture from './capture.js';
-import tag_case from './case.js';
-import tag_comment from './comment.js';
-import tag_cycle from './cycle.js';
-import tag_decrement from './decrement.js';
-import tag_for from './for.js';
-import tag_if from './if.js';
-import tag_include from './include.js';
-import tag_increment from './increment.js';
-import tag_layout from './layout.js';
-import tag_raw from './raw.js';
-import tag_tablerow from './tablerow.js';
-import tag_unless from './unless.js';
+import tagAssign from './assign.js';
+import tagCapture from './capture.js';
+import tagCase from './case.js';
+import tagComment from './comment.js';
+import tagCycle from './cycle.js';
+import tagDecrement from './decrement.js';
+import tagFor from './for.js';
+import tagIf from './if.js';
+import tagInclude from './include.js';
+import tagIncrement from './increment.js';
+import tagLayout from './layout.js';
+import tagRaw from './raw.js';
+import tagTablerow from './tablerow.js';
+import tagUnless from './unless.js';
 
-export default function(engine) {
+export default function (engine) {
   [
-    tag_assign,
-    tag_capture,
-    tag_case,
-    tag_comment,
-    tag_cycle,
-    tag_decrement,
-    tag_for,
-    tag_if,
-    tag_include,
-    tag_increment,
-    tag_layout,
-    tag_raw,
-    tag_tablerow,
-    tag_unless,
+    tagAssign,
+    tagCapture,
+    tagCase,
+    tagComment,
+    tagCycle,
+    tagDecrement,
+    tagFor,
+    tagIf,
+    tagInclude,
+    tagIncrement,
+    tagLayout,
+    tagRaw,
+    tagTablerow,
+    tagUnless
   ].forEach(registerTag => registerTag(engine));
 }

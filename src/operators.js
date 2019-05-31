@@ -3,36 +3,28 @@ import SafeObject from './safe-object.js';
 const getCompareValue = value => {
   if (value instanceof SafeObject && SafeObject.COMPARISON_KEY in value) {
     return value[SafeObject.COMPARISON_KEY];
-  }
-  else if (isNullOrUndefined(value)) {
+  } else if (isNullOrUndefined(value)) {
     return null;
-  }
-  else if (typeof value === 'object') {
+  } else if (typeof value === 'object') {
     if (Array.isArray(value)) {
       return value.length === 0 ? null : value;
-    }
-    else if (value.valueOf) {
+    } else if (value.valueOf) {
       return value.valueOf();
-    }
-    else if (value.toJSON) {
+    } else if (value.toJSON) {
       return value.toJSON();
-    }
-    else if (value.toString) {
+    } else if (value.toString) {
       return value.toString();
-    }
-    else {
+    } else {
       return Object.keys(value).length === 0 ? null : value;
     }
-  }
-  else if (typeof value === 'string') {
+  } else if (typeof value === 'string') {
     return value.length === 0 ? null : value;
-  }
-  else {
+  } else {
     return value;
   }
 };
 
-const isNullOrUndefined = value => null === value || undefined === value;
+const isNullOrUndefined = value => value === null || undefined === value;
 
 const createOperator = (EMPTY, handler) => (l, r) => {
   // console.log('compare operator. before: ', { l, r });
@@ -65,17 +57,15 @@ export default function (isTruthy, EMPTY) {
       const simpleComparison = l.indexOf(compareValue) > -1;
       if (simpleComparison || !Array.isArray(l)) { // return result if string
         return simpleComparison;
-      }
-      else if (Array.isArray(l) && l.some) { // supports some
+      } else if (Array.isArray(l) && l.some) { // supports some
         return l.some(item => getCompareValue(item) === compareValue);
-      }
-      else {
+      } else {
         return simpleComparison; // sanity/falllback return result of simple compare
       }
     }),
 
     'and': _createOperator((l, r) => isTruthy(l) && isTruthy(r)),
 
-    'or': _createOperator((l, r) => isTruthy(l) || isTruthy(r)),
-  }
+    'or': _createOperator((l, r) => isTruthy(l) || isTruthy(r))
+  };
 }

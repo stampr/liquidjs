@@ -1,25 +1,24 @@
 import { isFalsy, evalExp } from '../syntax.js';
 
-
-export default function(liquid) {
+export default function (liquid) {
   liquid.registerTag('unless', {
     parse: function (tagToken, remainTokens) {
-      this.templates = []
-      this.elseTemplates = []
-      var p
+      this.templates = [];
+      this.elseTemplates = [];
+      var p;
       var stream = liquid.parser.parseStream(remainTokens)
         .on('start', x => {
-          p = this.templates
-          this.cond = tagToken.args
+          p = this.templates;
+          this.cond = tagToken.args;
         })
         .on('tag:else', () => (p = this.elseTemplates))
         .on('tag:endunless', token => stream.stop())
         .on('template', tpl => p.push(tpl))
         .on('end', x => {
-          throw new Error(`tag ${tagToken.raw} not closed`)
-        })
+          throw new Error(`tag ${tagToken.raw} not closed`);
+        });
 
-      stream.start()
+      stream.start();
     },
 
     render: function (scope, hash) {
@@ -37,7 +36,7 @@ export default function(liquid) {
         //   return _result;
         // });
         return result;
-      })
+      });
     }
-  })
+  });
 }

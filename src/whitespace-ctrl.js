@@ -1,45 +1,45 @@
 import { assign } from './util/underscore.js';
 
 function shouldTrimLeft (token, inRaw, options) {
-  if (inRaw) return false
-  if (token.type === 'tag') return token.trim_left || options.trim_tag_left
-  if (token.type === 'value') return token.trim_left || options.trim_value_left
+  if (inRaw) return false;
+  if (token.type === 'tag') return token.trim_left || options.trim_tag_left;
+  if (token.type === 'value') return token.trim_left || options.trim_value_left;
 }
 
 function shouldTrimRight (token, inRaw, options) {
-  if (inRaw) return false
-  if (token.type === 'tag') return token.trim_right || options.trim_tag_right
-  if (token.type === 'value') return token.trim_right || options.trim_value_right
+  if (inRaw) return false;
+  if (token.type === 'tag') return token.trim_right || options.trim_tag_right;
+  if (token.type === 'value') return token.trim_right || options.trim_value_right;
 }
 
 function trimLeft (token, greedy) {
-  if (!token || token.type !== 'html') return
+  if (!token || token.type !== 'html') return;
 
-  var rLeft = greedy ? /\s+$/g : /[\t\r ]*$/g
-  token.value = token.value.replace(rLeft, '')
+  var rLeft = greedy ? /\s+$/g : /[\t\r ]*$/g;
+  token.value = token.value.replace(rLeft, '');
 }
 
 function trimRight (token, greedy) {
-  if (!token || token.type !== 'html') return
+  if (!token || token.type !== 'html') return;
 
-  var rRight = greedy ? /^\s+/g : /^[\t\r ]*\n?/g
-  token.value = token.value.replace(rRight, '')
+  var rRight = greedy ? /^\s+/g : /^[\t\r ]*\n?/g;
+  token.value = token.value.replace(rRight, '');
 }
 
 export default function (tokens, options) {
-  options = assign({ greedy: true }, options)
-  var inRaw = false
+  options = assign({ greedy: true }, options);
+  var inRaw = false;
 
   tokens.forEach((token, i) => {
     if (shouldTrimLeft(token, inRaw, options)) {
-      trimLeft(tokens[i - 1], options.greedy)
+      trimLeft(tokens[i - 1], options.greedy);
     }
 
-    if (token.type === 'tag' && token.name === 'raw') inRaw = true
-    if (token.type === 'tag' && token.name === 'endraw') inRaw = false
+    if (token.type === 'tag' && token.name === 'raw') inRaw = true;
+    if (token.type === 'tag' && token.name === 'endraw') inRaw = false;
 
     if (shouldTrimRight(token, inRaw, options)) {
-      trimRight(tokens[i + 1], options.greedy)
+      trimRight(tokens[i + 1], options.greedy);
     }
-  })
+  });
 }

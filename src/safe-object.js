@@ -1,21 +1,20 @@
 export default class SafeObject {
-  constructor(comparisonId) {
+  constructor (comparisonId) {
     if (undefined !== comparisonId) {
       Object.defineProperty(this, SafeObject.COMPARISON_KEY, {
         enumerable: false,
-        value:      comparisonId,
+        value: comparisonId
       });
-    }
-    else {
+    } else {
       // noop. must inherit
     }
   }
 
-  valueOf() {
+  valueOf () {
     return this[SafeObject.COMPARISON_KEY];
   }
 
-  toString() {
+  toString () {
     return '';
   }
 }

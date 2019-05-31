@@ -1,9 +1,9 @@
-const chai = require('chai')
-const expect = chai.expect
+const chai = require('chai');
+const expect = chai.expect;
 var Locale = require('../src/locale.js').default;
 
-describe('locale', function() {
-  it('should translate object paths', function() {
+describe('locale', function () {
+  it('should translate object paths', function () {
     let locale = new Locale({
       hello: 'world',
       a: {
