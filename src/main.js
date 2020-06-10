@@ -1,5 +1,6 @@
 import { createScope } from './scope';
 import * as _ from './util/underscore.js';
+import * as strftime from './util/strftime.js';
 import assert from './util/assert.js';
 import { parse } from './tokenizer.js';
 import { statFileAsync, readFileAsync } from './util/fs.js';
@@ -20,7 +21,14 @@ import * as lexical from './lexical.js';
 import { argsToObject } from './util/args.js';
 import SafeObject from './safe-object.js';
 
-export { Locale, lexical, Syntax, Errors, argsToObject, SafeObject };
+export {
+  Locale,
+  lexical,
+  Syntax,
+  Errors,
+  argsToObject,
+  SafeObject,
+  strftime };
 
 var _engine = {
   init: function (tag, filter, options) {
