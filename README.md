@@ -1,3 +1,8 @@
+# Fork note
+
+This fork has undergone significant changes and is likely uncompatible with the original liquidjs version.
+
+
 # liquidjs
 
 [![npm](https://img.shields.io/npm/v/liquidjs.svg)](https://www.npmjs.org/package/liquidjs)
