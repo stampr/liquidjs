@@ -1,6 +1,6 @@
 import { createScope } from './scope';
 import * as _ from './util/underscore.js';
-import * as strftime from './util/strftime.js';
+import strftime from './util/strftime.js';
 import assert from './util/assert.js';
 import { parse } from './tokenizer.js';
 import { statFileAsync, readFileAsync } from './util/fs.js';

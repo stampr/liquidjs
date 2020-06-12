@@ -3688,7 +3688,7 @@ __webpack_require__.d(__webpack_exports__, "Syntax", function() { return /* reex
 __webpack_require__.d(__webpack_exports__, "Errors", function() { return /* reexport */ error_namespaceObject; });
 __webpack_require__.d(__webpack_exports__, "argsToObject", function() { return /* reexport */ argsToObject; });
 __webpack_require__.d(__webpack_exports__, "SafeObject", function() { return /* reexport */ SafeObject; });
-__webpack_require__.d(__webpack_exports__, "strftime", function() { return /* reexport */ strftime_namespaceObject; });
+__webpack_require__.d(__webpack_exports__, "strftime", function() { return /* reexport */ strftime; });
 __webpack_require__.d(__webpack_exports__, "createEngine", function() { return /* binding */ createEngine; });
 
 // NAMESPACE OBJECT: ./src/lexical.js
@@ -3742,11 +3742,6 @@ __webpack_require__.d(error_namespaceObject, "ParseError", function() { return P
 __webpack_require__.d(error_namespaceObject, "RenderError", function() { return RenderError; });
 __webpack_require__.d(error_namespaceObject, "RenderBreakError", function() { return RenderBreakError; });
 __webpack_require__.d(error_namespaceObject, "AssertionError", function() { return AssertionError; });
-
-// NAMESPACE OBJECT: ./src/util/strftime.js
-var strftime_namespaceObject = {};
-__webpack_require__.r(strftime_namespaceObject);
-__webpack_require__.d(strftime_namespaceObject, "default", function() { return strftime; });
 
 // NAMESPACE OBJECT: ./src/syntax.js
 var syntax_namespaceObject = {};
