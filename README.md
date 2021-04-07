@@ -1,3 +1,5 @@
+**Development of this fork has ceased here. That may change at some point in the future but for now we're archiving**
+
 # Fork note
 
 This fork has undergone significant changes and is likely uncompatible with the original liquidjs version.
